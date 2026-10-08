@@ -31,15 +31,19 @@ import { ThemeService } from './core/services/theme.service';
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      background: var(--bg-primary);
     }
     .app-body {
       display: flex;
       flex: 1;
       overflow: hidden;
+      min-height: 0;
+      margin-top: 16px;
     }
     .main-content {
-      flex: 1;
-      padding: 1.5rem 2rem;
+      flex: 1 1 0%;
+      min-width: 0;
+      padding: 0 24px 24px 24px;
       overflow-y: auto;
       background: var(--bg-primary);
     }

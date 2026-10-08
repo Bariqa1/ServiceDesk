@@ -67,16 +67,21 @@ import { AuthService } from '../../../core/services/auth.service';
     </aside>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 260px;
+      flex-shrink: 0;
+      height: 100%;
+    }
     .sidebar-container {
-      width: 250px;
-      height: calc(100vh - 105px);
-      position: sticky;
-      top: 90px;
-      margin-right: 24px;
+      width: 100%;
+      height: calc(100% - 24px);
+      margin: 0 16px 24px 20px;
       padding: 20px 14px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      box-sizing: border-box;
     }
     .nav-section-title {
       font-size: 0.6875rem;

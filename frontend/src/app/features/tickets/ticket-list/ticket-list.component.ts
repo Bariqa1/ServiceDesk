@@ -41,51 +41,53 @@ import { Ticket, PageResponse } from '../../../core/models/models';
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="filter-card p-4 rounded-xl border mb-6 flex flex-wrap items-center justify-between gap-4">
-        <!-- Search Input -->
-        <div class="flex-1 min-w-[240px] relative">
-          <input 
-            type="text" 
-            [(ngModel)]="searchQuery" 
-            (keyup.enter)="applyFilters()"
-            placeholder="بحث بالعنوان، الوصف أو رقم التذكرة..." 
-            class="input-field w-full pr-9"
-          />
-        </div>
+      <div class="filter-card p-4 rounded-xl border mb-6">
+        <div class="filter-toolbar flex flex-wrap items-center gap-3">
+          <!-- Search Input -->
+          <div class="search-box flex-1 min-w-[260px] relative">
+            <input 
+              type="text" 
+              [(ngModel)]="searchQuery" 
+              (keyup.enter)="applyFilters()"
+              placeholder="بحث بالعنوان، الوصف أو رقم التذكرة..." 
+              class="input-field w-full"
+            />
+          </div>
 
-        <!-- Filter Selects -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="select-field">
-            <option value="">جميع الحالات</option>
-            <option value="OPEN">Open (جديدة)</option>
-            <option value="ASSIGNED">Assigned (مسندة)</option>
-            <option value="IN_PROGRESS">In Progress (قيد المعالجة)</option>
-            <option value="WAITING_FOR_USER">Waiting For User (بانتظار الموظف)</option>
-            <option value="RESOLVED">Resolved (تم الحل)</option>
-            <option value="CLOSED">Closed (مغلقة)</option>
-            <option value="REOPENED">Reopened (معاد فتحها)</option>
-          </select>
+          <!-- Filter Selects -->
+          <div class="filter-selects flex flex-wrap items-center gap-2.5">
+            <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="select-field">
+              <option value="">جميع الحالات</option>
+              <option value="OPEN">Open (جديدة)</option>
+              <option value="ASSIGNED">Assigned (مسندة)</option>
+              <option value="IN_PROGRESS">In Progress (قيد المعالجة)</option>
+              <option value="WAITING_FOR_USER">Waiting For User (بانتظار الموظف)</option>
+              <option value="RESOLVED">Resolved (تم الحل)</option>
+              <option value="CLOSED">Closed (مغلقة)</option>
+              <option value="REOPENED">Reopened (معاد فتحها)</option>
+            </select>
 
-          <select [(ngModel)]="selectedPriority" (change)="applyFilters()" class="select-field">
-            <option value="">جميع الأولويات</option>
-            <option value="CRITICAL">Critical (حرجة)</option>
-            <option value="HIGH">High (عالية)</option>
-            <option value="MEDIUM">Medium (متوسطة)</option>
-            <option value="LOW">Low (منخفضة)</option>
-          </select>
+            <select [(ngModel)]="selectedPriority" (change)="applyFilters()" class="select-field">
+              <option value="">جميع الأولويات</option>
+              <option value="CRITICAL">Critical (حرجة)</option>
+              <option value="HIGH">High (عالية)</option>
+              <option value="MEDIUM">Medium (متوسطة)</option>
+              <option value="LOW">Low (منخفضة)</option>
+            </select>
 
-          <select [(ngModel)]="selectedSla" (change)="applyFilters()" class="select-field">
-            <option value="">جميع حالات SLA</option>
-            <option value="WITHIN_SLA">ضمن المهلة (Within SLA)</option>
-            <option value="AT_RISK">مهددة بالانقضاء (At Risk)</option>
-            <option value="BREACHED">متجاوزة (Breached)</option>
-          </select>
+            <select [(ngModel)]="selectedSla" (change)="applyFilters()" class="select-field">
+              <option value="">جميع حالات SLA</option>
+              <option value="WITHIN_SLA">ضمن المهلة (Within SLA)</option>
+              <option value="AT_RISK">مهددة بالانقضاء (At Risk)</option>
+              <option value="BREACHED">متجاوزة (Breached)</option>
+            </select>
 
-          @if (hasActiveFilters()) {
-            <button class="btn btn-secondary btn-sm" (click)="resetFilters()">
-              مسح التصفية
-            </button>
-          }
+            @if (hasActiveFilters()) {
+              <button class="btn btn-secondary btn-sm" (click)="resetFilters()">
+                مسح التصفية
+              </button>
+            }
+          </div>
         </div>
       </div>
 
@@ -100,17 +102,17 @@ import { Ticket, PageResponse } from '../../../core/models/models';
             لا توجد تذاكر تطابق معايير البحث.
           </div>
         } @else {
-          <div class="table-responsive">
+          <div class="table-responsive overflow-x-auto">
             <table class="data-table w-full text-right text-xs">
               <thead>
                 <tr>
-                  <th style="width: 110px;">رقم التذكرة</th>
+                  <th style="min-width: 140px; white-space: nowrap;">رقم التذكرة</th>
                   <th>عنوان الطلب والمشكلة</th>
-                  <th style="width: 100px;">الأولوية</th>
-                  <th style="width: 130px;">الحالة</th>
-                  <th style="width: 130px;">حالة SLA</th>
-                  <th style="width: 140px;">المسؤول</th>
-                  <th style="width: 130px;">تاريخ الإنشاء</th>
+                  <th style="min-width: 110px; white-space: nowrap;">الأولوية</th>
+                  <th style="min-width: 130px; white-space: nowrap;">الحالة</th>
+                  <th style="min-width: 130px; white-space: nowrap;">حالة SLA</th>
+                  <th style="min-width: 150px; white-space: nowrap;">المسؤول</th>
+                  <th style="min-width: 160px; white-space: nowrap;">تاريخ الإنشاء</th>
                 </tr>
               </thead>
               <tbody>

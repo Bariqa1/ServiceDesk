@@ -64,16 +64,22 @@ import { WebSocketService } from '../../../core/services/websocket.service';
     </header>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      flex-shrink: 0;
+    }
     .navbar-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 12px 28px;
-      margin: 16px 24px;
+      margin: 16px 24px 0 24px;
       border-radius: var(--radius-md);
       position: sticky;
       top: 16px;
       z-index: 100;
+      box-sizing: border-box;
     }
     .navbar-left, .navbar-right {
       display: flex;

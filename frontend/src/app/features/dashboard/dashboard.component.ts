@@ -15,9 +15,9 @@ import { DashboardMetrics, Ticket, TicketEvent } from '../../core/models/models'
       <!-- Top Overview Bar -->
       <div class="page-header flex justify-between items-center mb-6">
         <div>
-          <h1 class="page-title text-2xl font-bold">Service Operations Control Center</h1>
+          <h1 class="page-title text-2xl font-bold">لوحة تحكم عمليات الخدمة والدعم (ITSM NOC)</h1>
           <p class="page-subtitle text-sm text-secondary">
-            Real-time ITIL support queue, automated SLA tracking, and resolution health.
+            مراقبة طابور تذاكر الدعم الفني، قياس مؤشرات اتفاقيات مستوى الخدمة (SLA)، والتنبيهات المباشرة.
           </p>
         </div>
         <div class="flex items-center gap-3">
@@ -225,18 +225,18 @@ import { DashboardMetrics, Ticket, TicketEvent } from '../../core/models/models'
               <table class="data-table w-full text-right text-xs">
                 <thead>
                   <tr>
-                    <th>رقم التذكرة</th>
+                    <th style="min-width: 140px; white-space: nowrap;">رقم التذكرة</th>
                     <th>العنوان والطلب</th>
-                    <th>الأولوية</th>
-                    <th>الحالة</th>
-                    <th>حالة SLA</th>
-                    <th>المسؤول</th>
+                    <th style="min-width: 100px; white-space: nowrap;">الأولوية</th>
+                    <th style="min-width: 110px; white-space: nowrap;">الحالة</th>
+                    <th style="min-width: 110px; white-space: nowrap;">حالة SLA</th>
+                    <th style="min-width: 130px; white-space: nowrap;">المسؤول</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (t of recentTickets(); track t.publicId) {
                     <tr class="hover-row">
-                      <td class="font-mono font-semibold">
+                      <td class="font-mono font-semibold" style="white-space: nowrap;">
                         <a [routerLink]="['/tickets', t.publicId]" class="ticket-key-link">
                           {{ t.ticketNumber }}
                         </a>
