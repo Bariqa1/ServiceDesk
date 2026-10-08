@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { AuthService } from './core/services/auth.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -46,4 +47,5 @@ import { AuthService } from './core/services/auth.service';
 })
 export class AppComponent {
   public auth = inject(AuthService);
+  public theme = inject(ThemeService);
 }
