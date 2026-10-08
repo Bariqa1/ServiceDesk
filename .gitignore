@@ -1,0 +1,27 @@
+# ServiceDesk - Git Ignore Configuration (.gitignore)
+.env
+.env.*
+!.env.example
+*.local
+
+.DS_Store
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+target/
+**/target/
+*.class
+*.jar
+*.war
+
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.angular/
+
+logs/
+*.log
+*.h2.db
