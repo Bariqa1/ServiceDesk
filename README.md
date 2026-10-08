@@ -1,5 +1,7 @@
 # ServiceDesk
 
+[![ServiceDesk CI Pipeline](https://github.com/Bariqa1/ServiceDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/Bariqa1/ServiceDesk/actions/workflows/ci.yml)
+
 ServiceDesk is an enterprise IT Service Management (ITSM) and Incident Lifecycle platform built with Java 21, Spring Boot 3, and Angular 18. The system enforces ITIL support workflows, automated SLA tracking, background escalation engines, and real-time STOMP WebSocket synchronization.
 
 ---
