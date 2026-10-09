@@ -6,16 +6,17 @@ import { ApiService } from '../../../core/services/api.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Ticket, TicketStatus, UserSummary } from '../../../core/models/models';
+import { StateStepperComponent } from '../components/state-stepper/state-stepper.component';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, StateStepperComponent],
   template: `
     @if (ticket()) {
       <div class="ticket-detail-page animate-fade-in">
         <!-- Top Action Bar -->
-        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-5">
           <div class="flex items-center gap-3">
             <a routerLink="/tickets" class="btn btn-secondary btn-sm">
               ← الطابور
@@ -34,35 +35,24 @@ import { Ticket, TicketStatus, UserSummary } from '../../../core/models/models';
             </div>
           </div>
 
-          <!-- Transition Action Buttons -->
           <div class="flex items-center gap-2">
-            @if (canTransitionTo('IN_PROGRESS')) {
-              <button class="btn btn-primary btn-sm" (click)="transitionStatus('IN_PROGRESS')">
-                بدء العمل (Start Working)
-              </button>
-            }
-            @if (canTransitionTo('WAITING_FOR_USER')) {
-              <button class="btn btn-secondary btn-sm" (click)="transitionStatus('WAITING_FOR_USER')">
-                بانتظار الموظف
-              </button>
-            }
-            @if (canTransitionTo('RESOLVED')) {
-              <button class="btn btn-success btn-sm" (click)="openResolveDialog()">
-                تحديد كمحلولة (Resolve)
-              </button>
-            }
-            @if (canTransitionTo('CLOSED')) {
-              <button class="btn btn-secondary btn-sm" (click)="transitionStatus('CLOSED')">
-                إغلاق نهائي
-              </button>
-            }
-            @if (canTransitionTo('REOPENED')) {
-              <button class="btn btn-warning btn-sm" (click)="transitionStatus('REOPENED')">
-                إعادة فتح
-              </button>
-            }
+            <button class="btn btn-secondary btn-sm" (click)="loadTicket()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              <span>تحديث البيانات</span>
+            </button>
           </div>
         </div>
+
+        <!-- Interactive State Machine Stepper Component -->
+        <app-state-stepper 
+          [ticket]="ticket()"
+          [isManager]="auth.isManager()"
+          [isTeamLead]="auth.isTeamLead()"
+          [isAgent]="auth.isAgent()"
+          [isEmployee]="auth.isEmployee()"
+          (transition)="transitionStatus($event)"
+          (openResolve)="openResolveDialog()"
+        />
 
         <!-- Main Grid Layout -->
         <div class="grid grid-cols-1 lg-grid-cols-3 gap-6">
