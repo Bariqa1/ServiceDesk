@@ -166,8 +166,74 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
                     </div>
                   </div>
 
+                  <!-- Enterprise Guardrails Shield Card -->
+                  @if (aiAnalysis()?.guardrailReport; as gr) {
+                    <div class="guardrails-shield-card p-3.5 rounded-xl border" [class.guardrail-passed]="gr.status === 'PASSED'" [class.guardrail-sanitized]="gr.status === 'SANITIZED'" [class.guardrail-blocked]="gr.status === 'BLOCKED'">
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                          <span class="text-base">🛡️</span>
+                          <div>
+                            <span class="text-xs font-bold text-primary">{{ i18n.t('aiAgent.guardrailsTitle') }}</span>
+                            <p class="text-[11px] text-secondary">{{ i18n.t('aiAgent.guardrailsDesc') }}</p>
+                          </div>
+                        </div>
+                        <div class="guardrail-status-badge font-semibold text-[11px] px-2.5 py-1 rounded-full border">
+                          @if (gr.status === 'PASSED') {
+                            <span class="text-emerald-500 font-bold">✓ {{ i18n.t('aiAgent.guardrailsPassed') }}</span>
+                          } @else if (gr.status === 'SANITIZED') {
+                            <span class="text-amber-500 font-bold">⚠️ {{ i18n.t('aiAgent.guardrailsSanitized') }}</span>
+                          } @else {
+                            <span class="text-rose-500 font-bold">🚨 {{ i18n.t('aiAgent.guardrailsBlocked') }}</span>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Guardrail Protection Chips -->
+                      <div class="flex flex-wrap gap-1.5 mt-2.5">
+                        <span class="guardrail-chip text-[11px] px-2 py-0.5 rounded-md border" [class.chip-alert]="gr.promptInjectionDetected" [class.chip-ok]="!gr.promptInjectionDetected">
+                          {{ gr.promptInjectionDetected ? ('🚨 ' + i18n.t('aiAgent.guardrailsInjectionDetected')) : ('✓ ' + i18n.t('aiAgent.guardrailsCleanPill')) }}
+                        </span>
+                        @if (gr.secretsRedacted) {
+                          <span class="guardrail-chip text-[11px] px-2 py-0.5 rounded-md border chip-warning">
+                            🔒 {{ i18n.t('aiAgent.guardrailsSecretsMasked') }}
+                          </span>
+                        }
+                        @if (gr.piiRedacted && !gr.secretsRedacted) {
+                          <span class="guardrail-chip text-[11px] px-2 py-0.5 rounded-md border chip-warning">
+                            👤 {{ i18n.t('aiAgent.guardrailsPiiMasked') }}
+                          </span>
+                        }
+                        @if (gr.destructiveCommandsBlocked) {
+                          <span class="guardrail-chip text-[11px] px-2 py-0.5 rounded-md border chip-alert">
+                            🛑 {{ i18n.t('aiAgent.guardrailsDestructiveBlocked') }}
+                          </span>
+                        }
+                        <span class="guardrail-chip text-[11px] px-2 py-0.5 rounded-md border text-secondary font-mono">
+                          {{ i18n.t('aiAgent.guardrailsRiskScore') }}: {{ gr.riskScore }}%
+                        </span>
+                      </div>
+
+                      <!-- Violation Details if any -->
+                      @if (gr.violations && gr.violations.length > 0) {
+                        <div class="mt-2.5 pt-2 border-t text-[11px] flex flex-col gap-1">
+                          <span class="font-bold text-secondary">{{ i18n.t('aiAgent.guardrailsViolationsList') }}:</span>
+                          @for (v of gr.violations; track v.details) {
+                            <div class="flex items-center gap-2 p-1.5 rounded bg-card border font-mono">
+                              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold text-white" [class.bg-rose-500]="v.severity === 'CRITICAL'" [class.bg-amber-500]="v.severity === 'HIGH' || v.severity === 'MEDIUM'">
+                                {{ v.severity }}
+                              </span>
+                              <span class="font-semibold text-primary">{{ v.rule }}</span>
+                              <span class="text-secondary truncate">{{ v.details }}</span>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+
                   <!-- Reasoning Trajectory Pipeline -->
                   <div class="trajectory-card p-3.5 rounded-xl border bg-subtle">
+
                     <div class="flex items-center justify-between mb-2.5">
                       <div class="text-xs font-bold text-primary flex items-center gap-1.5">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -738,6 +804,43 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
       background: var(--bg-card);
       border-color: var(--border-subtle);
     }
+    .guardrails-shield-card {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+    .guardrails-shield-card.guardrail-passed {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(16, 185, 129, 0.03) 100%);
+    }
+    .guardrails-shield-card.guardrail-sanitized {
+      border-color: rgba(245, 158, 11, 0.3);
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(245, 158, 11, 0.03) 100%);
+    }
+    .guardrails-shield-card.guardrail-blocked {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(239, 68, 68, 0.05) 100%);
+    }
+    .guardrail-chip {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+    }
+    .guardrail-chip.chip-ok {
+      color: #10B981;
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+    .guardrail-chip.chip-warning {
+      color: #F59E0B;
+      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.05);
+    }
+    .guardrail-chip.chip-alert {
+      color: #EF4444;
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.08);
+      font-weight: 700;
+    }
+
     .mini-confidence-bar {
       width: 40px;
       height: 4px;

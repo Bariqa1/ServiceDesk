@@ -86,6 +86,11 @@ public class AiAgentService {
             log.warn("Failed to serialize AI trajectory: {}", ex.getMessage());
         }
 
+        String guardrailStatus = response.guardrailReport() != null ? response.guardrailReport().status() : "PASSED";
+        Double guardrailRisk = response.guardrailReport() != null ? response.guardrailReport().riskScore() : 5.0;
+        int violationsCount = (response.guardrailReport() != null && response.guardrailReport().violations() != null)
+                ? response.guardrailReport().violations().size() : 0;
+
         AiAuditLog aiAuditLog = AiAuditLog.builder()
                 .ticketId(ticket.getId())
                 .ticketNumber(ticket.getTicketNumber())
@@ -98,6 +103,9 @@ public class AiAgentService {
                 .rootCauseAnalysis(response.rootCauseAnalysis())
                 .proposedResolution(response.proposedResolution())
                 .trajectoryJson(trajectoryJson)
+                .guardrailStatus(guardrailStatus)
+                .guardrailRiskScore(guardrailRisk)
+                .guardrailViolationsCount(violationsCount)
                 .build();
 
         aiAuditLogRepository.save(aiAuditLog);
@@ -106,7 +114,7 @@ public class AiAgentService {
                 .ticket(ticket)
                 .action("AI_AGENT_DIAGNOSIS_COMPLETED")
                 .performedBy(ticket.getAssignedAgent() != null ? ticket.getAssignedAgent() : ticket.getRequester())
-                .details(String.format("Confidence: %.1f%% | Action: %s", response.confidenceScore(), response.actionType()))
+                .details(String.format("Confidence: %.1f%% | Action: %s | Guardrails: %s", response.confidenceScore(), response.actionType(), guardrailStatus))
                 .build());
 
         ticketBroadcasterService.broadcastTicketEvent(

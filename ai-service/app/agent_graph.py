@@ -3,10 +3,11 @@ import re
 from typing import List, Dict, Any, Optional
 from .models import (
     TicketAnalysisRequest, TrajectoryStep, KnowledgeMatch, DiagnosticResult,
-    MultiAgentAnalysisResponse, ActionType, AgentType
+    MultiAgentAnalysisResponse, ActionType, AgentType, GuardrailReport, GuardrailViolation
 )
 from .knowledge_base import EnterpriseKnowledgeBase
 from .tools import EnterpriseDiagnosticTools
+from .guardrails import EnterpriseGuardrailEngine
 
 class AgentState:
     def __init__(self, request: TicketAnalysisRequest):
@@ -19,6 +20,7 @@ class AgentState:
         self.trajectory: List[TrajectoryStep] = []
         self.kb_matches: List[KnowledgeMatch] = []
         self.diagnostic_results: List[DiagnosticResult] = []
+        self.guardrail_report: Optional[GuardrailReport] = None
         self.root_cause = ""
         self.proposed_resolution = ""
         self.action_type = ActionType.REQUIRE_HUMAN_APPROVAL
@@ -45,6 +47,25 @@ class MultiAgentOrchestrator:
     def execute(cls, request: TicketAnalysisRequest) -> MultiAgentAnalysisResponse:
         state = AgentState(request)
 
+        # 0. Pre-Execution Guardrail Node (Adversarial Defense & DLP)
+        state.guardrail_report = EnterpriseGuardrailEngine.evaluate_input(
+            title=request.title,
+            description=request.description
+        )
+
+        # If malicious prompt injection or destructive command intercepted, halt and isolate
+        if state.guardrail_report.status == "BLOCKED":
+            cls._guardrail_blocked_node(state)
+            return cls._build_response(state)
+
+        # If sensitive credentials or PII detected, sanitize payload before sub-agent ingestion
+        if state.guardrail_report.status == "SANITIZED":
+            cls._guardrail_sanitized_node(state)
+            state.request.title = state.guardrail_report.sanitizedTitle
+            state.request.description = state.guardrail_report.sanitizedDescription
+        else:
+            cls._guardrail_passed_node(state)
+
         # 1. Supervisor Agent (Intent & Orchestration Node)
         cls._supervisor_node(state)
 
@@ -60,9 +81,16 @@ class MultiAgentOrchestrator:
         # 5. Action Planner & Solution Synthesis Agent Node
         cls._action_planner_node(state)
 
-        # 6. Human-in-the-Loop (HITL) Gatekeeper Node
+        # 6. Post-Execution Guardrails (Harm & Output Hallucination Filter)
+        cls._guardrail_post_node(state)
+
+        # 7. Human-in-the-Loop (HITL) Gatekeeper Node
         cls._hitl_gatekeeper_node(state)
 
+        return cls._build_response(state)
+
+    @classmethod
+    def _build_response(cls, state: AgentState) -> MultiAgentAnalysisResponse:
         return MultiAgentAnalysisResponse(
             ticketNumber=state.request.ticketNumber or f"INC-2026-{state.request.ticketId or 'AUTO'}",
             languageDetected=state.language,
@@ -78,8 +106,10 @@ class MultiAgentOrchestrator:
             slaBreachRisk=state.sla_breach_risk,
             trajectory=state.trajectory,
             knowledgeMatches=state.kb_matches,
-            diagnosticResults=state.diagnostic_results
+            diagnosticResults=state.diagnostic_results,
+            guardrailReport=state.guardrail_report
         )
+
 
     @staticmethod
     def _supervisor_node(state: AgentState):
@@ -272,3 +302,90 @@ class MultiAgentOrchestrator:
             thought=thought,
             observation=obs
         )
+
+    @staticmethod
+    def _guardrail_blocked_node(state: AgentState):
+        state.priority = "CRITICAL"
+        state.category = "SECURITY_ACCESS"
+        state.urgency_score = 99.0
+        state.confidence_score = 0.0
+        state.action_type = ActionType.REQUIRE_HUMAN_APPROVAL
+        state.requires_human_approval = True
+        state.suggested_team = "Cyber Security Operations (SOC)"
+        state.sla_breach_risk = "CRITICAL_RISK"
+        
+        v_details = ", ".join(v.rule for v in state.guardrail_report.violations) if state.guardrail_report else "SECURITY_VIOLATION"
+        state.root_cause = f"CRITICAL SECURITY ALERT: Input triggered AI Guardrails defense policy ({v_details}). Potential prompt injection or destructive exploitation."
+        state.proposed_resolution = "Autonomous execution halted. Payload isolated. Mandatory human investigation by Cyber Security Operations (SOC) required."
+
+        thought = (
+            f"تم رصد تهديد أمني ومحاولة اختراق/حقن أوامر (Prompt Injection أو أوامر تدميرية). تم إحباط الهجوم وعزل التذكرة فوراً لمنع التسميم المعرفي للوكلاء."
+            if state.language == "AR" else
+            f"Adversarial security attack detected ({v_details}). Exploitation attempt neutralized immediately; payload quarantined to protect agent integrity."
+        )
+        state.record_step(
+            agent=AgentType.GUARDRAIL,
+            action="Adversarial Attack & Safety Interception",
+            thought=thought,
+            toolCalled="EnterpriseGuardrailEngine.evaluate_input",
+            observation=f"Status: BLOCKED | Violations: {len(state.guardrail_report.violations)} | Action: Threat Contained & Escalated"
+        )
+
+    @staticmethod
+    def _guardrail_sanitized_node(state: AgentState):
+        violations_count = len(state.guardrail_report.violations) if state.guardrail_report else 0
+        thought = (
+            f"تم تفعيل درع حماية البيانات (DLP): تم حجب وتشفير {violations_count} عنصر حساس (كلمات مرور/مفاتيح برمجية/هويات) قبل إرسالها للوكلاء لمنع تسريب البيانات."
+            if state.language == "AR" else
+            f"Data Loss Prevention (DLP) guardrail activated: Masked and sanitized {violations_count} sensitive secrets/PII elements before agent ingestion."
+        )
+        state.record_step(
+            agent=AgentType.GUARDRAIL,
+            action="Pre-Execution DLP & Secret Sanitization",
+            thought=thought,
+            toolCalled="EnterpriseGuardrailEngine.evaluate_input",
+            observation=f"Status: SANITIZED | Masked Items: {violations_count} | Payload Cleaned"
+        )
+
+    @staticmethod
+    def _guardrail_passed_node(state: AgentState):
+        thought = (
+            "اجتازت التذكرة فحص درع الأمان (Guardrails) بنجاح: خالية من محاولات كسر الحماية (Jailbreak)، وتسريب البيانات، والأوامر المحظورة."
+            if state.language == "AR" else
+            "Guardrail security verification passed: 0 prompt injections, 0 credential leaks, 0 destructive command signatures. Payload is clean."
+        )
+        state.record_step(
+            agent=AgentType.GUARDRAIL,
+            action="Security & Policy Pre-Flight Clearance",
+            thought=thought,
+            toolCalled="EnterpriseGuardrailEngine.evaluate_input",
+            observation="Status: PASSED | Risk Score: 5.0% | Clean Enterprise Payload"
+        )
+
+    @staticmethod
+    def _guardrail_post_node(state: AgentState):
+        is_safe, violations, sanitized_res = EnterpriseGuardrailEngine.evaluate_output(
+            root_cause=state.root_cause,
+            proposed_resolution=state.proposed_resolution
+        )
+        if not is_safe:
+            state.proposed_resolution = sanitized_res
+            if state.guardrail_report:
+                state.guardrail_report.violations.extend(violations)
+                state.guardrail_report.destructiveCommandsBlocked = True
+            state.requires_human_approval = True
+            state.action_type = ActionType.REQUIRE_HUMAN_APPROVAL
+
+            thought = (
+                "درع الأمان البعدي (Output Guardrail) رصد واعتراض أوامر نظام غير آمنة في خطة الحل المقترحة وتم إزالتها فوراً لسلامة النظام."
+                if state.language == "AR" else
+                "Post-execution output guardrail intercepted and removed dangerous system commands from proposed resolution."
+            )
+            state.record_step(
+                agent=AgentType.GUARDRAIL,
+                action="Post-Execution Harm Mitigation",
+                thought=thought,
+                toolCalled="EnterpriseGuardrailEngine.evaluate_output",
+                observation=f"Intercepted {len(violations)} dangerous command signatures. Safety bounds maintained."
+            )
+

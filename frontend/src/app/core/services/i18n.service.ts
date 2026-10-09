@@ -297,6 +297,20 @@ const AR_TRANSLATIONS: Translations = {
   'aiAgent.approvedBadge': 'تم اعتماد هذا الحل من قبل الفني',
   'aiAgent.toolsUsed': 'الأدوات المشغلة',
   'aiAgent.kbMatched': 'المقالات المتطابقة من قاعدة المعرفة',
+  'aiAgent.guardrailsTitle': 'درع الحماية والأمان (Enterprise Guardrails)',
+  'aiAgent.guardrailsDesc': 'فلاتر أمان استباقية تحمي من حقن الأوامر (Prompt Injection)، وتمنع تسريب البيانات الحساسة (DLP)، وتحظر الأوامر التدميرية.',
+  'aiAgent.guardrailsStatus': 'حالة الدرع الأمني',
+  'aiAgent.guardrailsPassed': 'اجتاز الفحص: آمن ومطابق للمعايير',
+  'aiAgent.guardrailsSanitized': 'تم تعتيم وحجب بيانات حساسة (DLP Active)',
+  'aiAgent.guardrailsBlocked': 'تم إحباط تهديد أمني / عزل التذكرة',
+  'aiAgent.guardrailsRiskScore': 'مؤشر خطورة الحمولة',
+  'aiAgent.guardrailsCleanPill': 'درع الحقن: سليم',
+  'aiAgent.guardrailsInjectionDetected': 'تم رصد واعتراض محاولة حقن أوامر (Prompt Injection)',
+  'aiAgent.guardrailsSecretsMasked': 'تم تشفير وتعتيم المفاتيح والرموز السرية',
+  'aiAgent.guardrailsPiiMasked': 'تم حماية وتعتيم البيانات الشخصية (PII)',
+  'aiAgent.guardrailsDestructiveBlocked': 'تم حظر وإلغاء أوامر نظام تدميرية',
+  'aiAgent.guardrailsViolationsList': 'سجل المخالفات الأمنية المرصودة',
+
 
   // Ticket Create
   'ticketCreate.title': 'إنشاء طلب أو بلاغ عطل جديد',
@@ -541,6 +555,20 @@ const EN_TRANSLATIONS: Translations = {
   'aiAgent.approvedBadge': 'Solution Approved by Technician',
   'aiAgent.toolsUsed': 'Diagnostic Tools Probed',
   'aiAgent.kbMatched': 'Matched Knowledge Base Runbooks',
+  'aiAgent.guardrailsTitle': 'Enterprise AI Guardrails & Security Shield',
+  'aiAgent.guardrailsDesc': 'Active boundary defense against prompt injections, Data Loss Prevention (DLP) secret masking, and destructive command interception.',
+  'aiAgent.guardrailsStatus': 'Guardrails Status',
+  'aiAgent.guardrailsPassed': 'Verified: Clean & Compliant',
+  'aiAgent.guardrailsSanitized': 'Sensitive Data Masked (DLP Active)',
+  'aiAgent.guardrailsBlocked': 'Security Threat Blocked & Isolated',
+  'aiAgent.guardrailsRiskScore': 'Payload Risk Score',
+  'aiAgent.guardrailsCleanPill': 'Prompt Injection Defense: Clean',
+  'aiAgent.guardrailsInjectionDetected': 'Prompt Injection Signature Intercepted',
+  'aiAgent.guardrailsSecretsMasked': 'API Secrets & Credentials Masked',
+  'aiAgent.guardrailsPiiMasked': 'Personally Identifiable Information (PII) Redacted',
+  'aiAgent.guardrailsDestructiveBlocked': 'Destructive System Command Intercepted',
+  'aiAgent.guardrailsViolationsList': 'Detected Safety Violations',
+
 
   // Ticket Create
   'ticketCreate.title': 'Create New Service Request or Incident',

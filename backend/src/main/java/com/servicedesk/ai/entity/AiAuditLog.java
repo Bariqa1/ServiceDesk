@@ -55,8 +55,19 @@ public class AiAuditLog {
     @Column(name = "trajectory_json", columnDefinition = "TEXT")
     private String trajectoryJson;
 
+    @Column(name = "guardrail_status", length = 32)
+    @Builder.Default
+    private String guardrailStatus = "PASSED";
+
+    @Column(name = "guardrail_risk_score")
+    private Double guardrailRiskScore;
+
+    @Column(name = "guardrail_violations_count")
+    private Integer guardrailViolationsCount;
+
     @Column(name = "approved_by", length = 64)
     private String approvedBy;
+
 
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;

@@ -185,6 +185,25 @@ export interface AiDiagnosticResult {
   details: Record<string, any>;
 }
 
+export interface AiGuardrailViolation {
+  rule: string;
+  severity: string;
+  details: string;
+  actionTaken: string;
+}
+
+export interface AiGuardrailReport {
+  status: 'PASSED' | 'SANITIZED' | 'BLOCKED';
+  riskScore: number;
+  sanitizedTitle: string;
+  sanitizedDescription: string;
+  violations: AiGuardrailViolation[];
+  promptInjectionDetected: boolean;
+  piiRedacted: boolean;
+  secretsRedacted: boolean;
+  destructiveCommandsBlocked: boolean;
+}
+
 export interface AiAgentAnalysisResponse {
   ticketNumber: string;
   languageDetected: string;
@@ -201,6 +220,7 @@ export interface AiAgentAnalysisResponse {
   trajectory: AiTrajectoryStep[];
   knowledgeMatches: AiKnowledgeMatch[];
   diagnosticResults: AiDiagnosticResult[];
+  guardrailReport?: AiGuardrailReport;
 }
 
 export interface AiAuditLog {

@@ -19,5 +19,6 @@ public record AiAgentAnalysisResponseDTO(
         String slaBreachRisk,
         List<AiTrajectoryStepDTO> trajectory,
         List<AiKnowledgeMatchDTO> knowledgeMatches,
-        List<AiDiagnosticResultDTO> diagnosticResults
+        List<AiDiagnosticResultDTO> diagnosticResults,
+        AiGuardrailReportDTO guardrailReport
 ) {}

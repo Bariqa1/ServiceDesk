@@ -179,6 +179,17 @@ public class AiServiceClient {
                                 .details(Map.of("service", category, "status", "UP"))
                                 .build()
                 ))
+                .guardrailReport(AiGuardrailReportDTO.builder()
+                        .status("PASSED")
+                        .riskScore(5.0)
+                        .sanitizedTitle(request.title())
+                        .sanitizedDescription(request.description())
+                        .violations(List.of())
+                        .promptInjectionDetected(false)
+                        .piiRedacted(false)
+                        .secretsRedacted(false)
+                        .destructiveCommandsBlocked(false)
+                        .build())
                 .build();
     }
 }

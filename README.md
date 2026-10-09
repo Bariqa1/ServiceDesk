@@ -6,50 +6,67 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
 [![Angular 18](https://img.shields.io/badge/Angular-18-red.svg)](https://angular.dev/)
 [![Multi-Agent](https://img.shields.io/badge/Architecture-Autonomous%20Multi--Agent-7952b3.svg)]()
+[![Guardrails](https://img.shields.io/badge/Security-Enterprise%20AI%20Guardrails-007ACC.svg)]()
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-ServiceDesk is an Enterprise IT Service Management (ITSM) and Incident Lifecycle platform built with Java 21, Spring Boot 3, Angular 18, and a **Python FastAPI Autonomous Multi-Agent Intelligence Service**. The system pairs deterministic ITIL incident workflows with an Agentic AI reasoning pipeline featuring **Tool Calling, Knowledge Base RAG, and Human-in-the-Loop (HITL) safety governance**.
+ServiceDesk is an Enterprise IT Service Management (ITSM) and Incident Lifecycle platform built with Java 21, Spring Boot 3, Angular 18, and a **Python FastAPI Autonomous Multi-Agent Intelligence Service**. The system pairs deterministic ITIL incident workflows with an Agentic AI reasoning pipeline featuring **Enterprise AI Guardrails, Tool Calling, Knowledge Base RAG, and Human-in-the-Loop (HITL) safety governance**.
 
 ---
 
-## Autonomous Multi-Agent AI Architecture
+## Autonomous Multi-Agent AI & Guardrails Architecture
 
-The system features a decoupled, production-grade **Autonomous Multi-Agent Service** (`ai-service`) operating as a multi-node directed state machine. When an agent requests diagnostic assistance on a ticket, the multi-agent graph coordinates specialized agents:
+The system features a decoupled, production-grade **Autonomous Multi-Agent Service** (`ai-service`) protected by pre- and post-execution **Enterprise AI Guardrails**. When an incident is analyzed, the graph executes:
 
 ```mermaid
 graph TD
     User([Support Agent / Lead]) -->|Trigger AI Analysis| SpringBoot[Spring Boot 3 Backend]
     SpringBoot -->|REST Client| FastAPI[FastAPI AI Service]
     
+    subgraph GuardrailsShield [Enterprise AI Guardrails Engine]
+        GuardrailPre[0. Guardrail Security Agent<br/>Prompt Injection & DLP Sanitizer]
+    end
+
     subgraph MultiAgent [Multi-Agent Reasoning Graph]
         Supervisor[1. Supervisor Agent<br/>State Coordinator & Routing]
         Triage[2. Triage Agent<br/>Urgency & Domain Classification]
         Knowledge[3. Knowledge Agent<br/>Bilingual ITSM Vector RAG]
         Diagnostic[4. Diagnostic Agent<br/>Tool Calling & Environment Probes]
         Planner[5. Action Planner Agent<br/>RCA Synthesis & Playbook]
-        HITL[6. HITL Gatekeeper Agent<br/>Safety Bounds & Approval Proposal]
+        GuardrailPost[6. Post-Execution Safety Gate<br/>Destructive Command Interceptor]
+        HITL[7. HITL Gatekeeper Agent<br/>Safety Bounds & Approval Proposal]
         
         Supervisor --> Triage
         Triage --> Knowledge
         Knowledge --> Diagnostic
         Diagnostic --> Planner
-        Planner --> HITL
+        Planner --> GuardrailPost
+        GuardrailPost --> HITL
     end
     
-    FastAPI --> MultiAgent
-    HITL -->|Structured Proposal + Confidence| SpringBoot
+    FastAPI --> GuardrailPre
+    GuardrailPre -->|Sanitized Payload| Supervisor
+    GuardrailPre -.->|If Blocked / Adversarial Attack| HITL
+    HITL -->|Structured Proposal + Guardrail Report| SpringBoot
     SpringBoot -->|Audit Trail JPA + WebSocket STOMP| Angular[Angular 18 Command Center]
     Angular -->|Human Approval 'Approve & Resolve'| SpringBoot
 ```
 
+### 🛡️ Enterprise AI Guardrails (Adversarial Defense & DLP):
+- **Prompt Injection & Jailbreak Defense:** Real-time regex and semantic signature matching intercepting instruction overrides, developer mode leaks, and delimiter attacks in Arabic and English. Quarantines adversarial payloads before agents can be poisoned.
+- **Data Loss Prevention (DLP) & Secret Masking:** Automatically detects and redacts AWS keys (`AKIA...`), JWT tokens, database connection strings, plain passwords, Saudi National IDs (`10.../20...`), and credit card numbers. Replaces them with safe tokens (e.g. `[REDACTED_SECRET:AWS_KEY]`) before LLM reasoning.
+- **Destructive Command Interception:** Blacklists dangerous bash and SQL commands (`rm -rf`, `DROP TABLE`, `mkfs`, `chmod 777`, `kill -9 1`), preventing agents from proposing or executing hazardous actions.
+- **Audit & Compliance Trail:** Logs security status (`PASSED`, `SANITIZED`, `BLOCKED`), risk scores, and violation items into `ai_audit_logs` for compliance auditing.
+
 ### Specialized Agent Graph Nodes:
-1. **Supervisor Agent**: Initializes execution state, validates incident metadata, and coordinates agent transitions.
-2. **Triage Agent**: Analyzes incident symptoms, categorizes technical domains (Database, Network, IAM, Server), and assesses business impact.
-3. **Knowledge Agent (RAG)**: Retrieves relevant resolution patterns from a bilingual (Arabic & English) ITSM knowledge base using semantic token similarity.
-4. **Diagnostic Agent (Tool Calling)**: Executes live diagnostic probes against simulated infrastructure environments (`ClusterPingTool`, `DirectoryLookupTool`, `SlaInspectorTool`) and captures observations.
-5. **Action Planner Agent**: Synthesizes diagnostic findings and knowledge articles into a comprehensive **Root Cause Analysis (RCA)**, step-by-step remediation plan, and confidence score.
-6. **HITL Gatekeeper Agent**: Enforces **Human-in-the-Loop safety boundaries**—prevents unverified automated changes on critical production services and packages solutions into an approval-gated proposal.
+1. **Guardrail Security Agent**: Scans inputs, sanitizes secrets, and blocks adversarial attacks.
+2. **Supervisor Agent**: Initializes execution state, validates incident metadata, and coordinates agent transitions.
+3. **Triage Agent**: Analyzes incident symptoms, categorizes technical domains (Database, Network, IAM, Server), and assesses business impact.
+4. **Knowledge Agent (RAG)**: Retrieves relevant resolution patterns from a bilingual (Arabic & English) ITSM knowledge base using semantic token similarity.
+5. **Diagnostic Agent (Tool Calling)**: Executes live diagnostic probes against infrastructure environments (`ClusterPingTool`, `DirectoryLookupTool`, `SlaInspectorTool`) and captures observations.
+6. **Action Planner Agent**: Synthesizes diagnostic findings and knowledge articles into a comprehensive **Root Cause Analysis (RCA)**, step-by-step remediation plan, and confidence score.
+7. **HITL Gatekeeper Agent**: Enforces **Human-in-the-Loop safety boundaries**—packages verified solutions into an approval-gated proposal for human technician sign-off.
+
 
 ---
 

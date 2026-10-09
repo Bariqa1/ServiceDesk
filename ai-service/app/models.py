@@ -3,12 +3,14 @@ from typing import Optional, List, Dict, Any
 from enum import Enum
 
 class AgentType(str, Enum):
+    GUARDRAIL = "GuardrailSecurityAgent"
     SUPERVISOR = "SupervisorAgent"
     TRIAGE = "TriageAgent"
     KNOWLEDGE = "KnowledgeAgent"
     DIAGNOSTIC = "DiagnosticAgent"
     ACTION_PLANNER = "ActionPlannerAgent"
     HITL_GATEKEEPER = "HitlGatekeeper"
+
 
 class ActionType(str, Enum):
     AUTO_RESOLVE = "AUTO_RESOLVE"
@@ -50,6 +52,23 @@ class DiagnosticResult(BaseModel):
     status: str
     details: Dict[str, Any]
 
+class GuardrailViolation(BaseModel):
+    rule: str
+    severity: str
+    details: str
+    actionTaken: str
+
+class GuardrailReport(BaseModel):
+    status: str = "PASSED"  # PASSED, SANITIZED, BLOCKED
+    riskScore: float = 0.0
+    sanitizedTitle: str = ""
+    sanitizedDescription: str = ""
+    violations: List[GuardrailViolation] = []
+    promptInjectionDetected: bool = False
+    piiRedacted: bool = False
+    secretsRedacted: bool = False
+    destructiveCommandsBlocked: bool = False
+
 class MultiAgentAnalysisResponse(BaseModel):
     ticketNumber: str
     languageDetected: str
@@ -66,6 +85,8 @@ class MultiAgentAnalysisResponse(BaseModel):
     trajectory: List[TrajectoryStep]
     knowledgeMatches: List[KnowledgeMatch]
     diagnosticResults: List[DiagnosticResult]
+    guardrailReport: Optional[GuardrailReport] = None
+
 
 class TriageQuickRequest(BaseModel):
     title: str
