@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { Ticket, PageResponse } from '../../../core/models/models';
 
 @Component({
@@ -14,111 +15,129 @@ import { Ticket, PageResponse } from '../../../core/models/models';
   template: `
     <div class="ticket-list-page animate-fade-in">
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
         <div>
-          <h1 class="text-2xl font-bold">طابور التذاكر والطلبات</h1>
-          <p class="text-sm text-secondary">
-            إدارة ومتابعة طلبات الدعم الفني الداخلي واتفاقيات مستوى الخدمة (SLA).
+          <h1 class="text-xl font-bold tracking-tight">{{ i18n.t('ticketList.title') }}</h1>
+          <p class="text-xs text-secondary mt-0.5">
+            {{ i18n.t('ticketList.subtitle') }}
           </p>
         </div>
-        <div class="flex items-center gap-3">
-          <button class="btn btn-secondary" (click)="loadTickets()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="flex items-center gap-2.5">
+          <button class="btn btn-secondary btn-sm" (click)="loadTickets()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="23 4 23 10 17 10"></polyline>
               <polyline points="1 20 1 14 7 14"></polyline>
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
             </svg>
-            تحديث
+            <span>{{ i18n.t('common.refresh') }}</span>
           </button>
-          <a routerLink="/tickets/new" class="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <a routerLink="/tickets/new" class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            إنشاء تذكرة
+            <span>{{ i18n.t('nav.newTicket') }}</span>
           </a>
         </div>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="filter-card p-4 rounded-xl border mb-6">
-        <div class="filter-toolbar flex flex-wrap items-center gap-3">
-          <!-- Search Input -->
-          <div class="search-box flex-1 min-w-[260px] relative">
+      <!-- Apple Minimalist Single Toolbar (Clean, Unified, Zero Waste) -->
+      <div class="toolbar-bar flex flex-wrap items-center justify-between gap-3 mb-4 p-2 rounded-xl border">
+        <div class="flex flex-wrap items-center gap-2 flex-1">
+          <!-- Compact Search Box -->
+          <div class="search-box relative">
+            <div class="search-icon">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
             <input 
               type="text" 
               [(ngModel)]="searchQuery" 
               (keyup.enter)="applyFilters()"
-              placeholder="بحث بالعنوان، الوصف أو رقم التذكرة..." 
-              class="input-field w-full"
+              (blur)="applyFilters()"
+              [placeholder]="i18n.t('ticketList.searchPlaceholder')" 
+              class="toolbar-search-input"
             />
           </div>
 
-          <!-- Filter Selects -->
-          <div class="filter-selects flex flex-wrap items-center gap-2.5">
-            <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="select-field">
-              <option value="">جميع الحالات</option>
-              <option value="OPEN">Open (جديدة)</option>
-              <option value="ASSIGNED">Assigned (مسندة)</option>
-              <option value="IN_PROGRESS">In Progress (قيد المعالجة)</option>
-              <option value="WAITING_FOR_USER">Waiting For User (بانتظار الموظف)</option>
-              <option value="RESOLVED">Resolved (تم الحل)</option>
-              <option value="CLOSED">Closed (مغلقة)</option>
-              <option value="REOPENED">Reopened (معاد فتحها)</option>
+          <div class="toolbar-sep"></div>
+
+          <!-- Inline Dropdowns -->
+          <div class="flex flex-wrap items-center gap-2">
+            <select [(ngModel)]="selectedStatus" (change)="applyFilters()" class="toolbar-select">
+              <option value="">{{ i18n.t('ticketList.allStatuses') }}</option>
+              <option value="OPEN">{{ i18n.formatStatus('OPEN') }}</option>
+              <option value="ASSIGNED">{{ i18n.formatStatus('ASSIGNED') }}</option>
+              <option value="IN_PROGRESS">{{ i18n.formatStatus('IN_PROGRESS') }}</option>
+              <option value="WAITING_FOR_USER">{{ i18n.formatStatus('WAITING_FOR_USER') }}</option>
+              <option value="RESOLVED">{{ i18n.formatStatus('RESOLVED') }}</option>
+              <option value="CLOSED">{{ i18n.formatStatus('CLOSED') }}</option>
+              <option value="REOPENED">{{ i18n.formatStatus('REOPENED') }}</option>
             </select>
 
-            <select [(ngModel)]="selectedPriority" (change)="applyFilters()" class="select-field">
-              <option value="">جميع الأولويات</option>
-              <option value="CRITICAL">Critical (حرجة)</option>
-              <option value="HIGH">High (عالية)</option>
-              <option value="MEDIUM">Medium (متوسطة)</option>
-              <option value="LOW">Low (منخفضة)</option>
+            <select [(ngModel)]="selectedPriority" (change)="applyFilters()" class="toolbar-select">
+              <option value="">{{ i18n.t('ticketList.allPriorities') }}</option>
+              <option value="CRITICAL">{{ i18n.formatPriority('CRITICAL') }}</option>
+              <option value="HIGH">{{ i18n.formatPriority('HIGH') }}</option>
+              <option value="MEDIUM">{{ i18n.formatPriority('MEDIUM') }}</option>
+              <option value="LOW">{{ i18n.formatPriority('LOW') }}</option>
             </select>
 
-            <select [(ngModel)]="selectedSla" (change)="applyFilters()" class="select-field">
-              <option value="">جميع حالات SLA</option>
-              <option value="WITHIN_SLA">ضمن المهلة (Within SLA)</option>
-              <option value="AT_RISK">مهددة بالانقضاء (At Risk)</option>
-              <option value="BREACHED">متجاوزة (Breached)</option>
+            <select [(ngModel)]="selectedSla" (change)="applyFilters()" class="toolbar-select">
+              <option value="">{{ i18n.t('ticketList.allSla') }}</option>
+              <option value="WITHIN_SLA">{{ i18n.formatSla('WITHIN_SLA') }}</option>
+              <option value="AT_RISK">{{ i18n.formatSla('AT_RISK') }}</option>
+              <option value="BREACHED">{{ i18n.formatSla('BREACHED') }}</option>
             </select>
 
             @if (hasActiveFilters()) {
-              <button class="btn btn-secondary btn-sm" (click)="resetFilters()">
-                مسح التصفية
+              <button class="clear-filters-btn" (click)="resetFilters()" [title]="i18n.t('ticketList.clearFilters')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>{{ i18n.t('ticketList.clearFilters') }}</span>
               </button>
             }
           </div>
         </div>
+
+        <!-- Right Side: Count -->
+        <div class="text-[11px] font-medium text-secondary px-2">
+          {{ pageData()?.totalElements ?? 0 }} {{ i18n.t('nav.tickets') }}
+        </div>
       </div>
 
-      <!-- Tickets Table -->
+      <!-- Tickets Table Card -->
       <div class="card rounded-xl border overflow-hidden">
         @if (loading()) {
           <div class="p-12 text-center text-secondary text-sm">
-            جاري تحميل التذاكر...
+            {{ i18n.t('common.loading') }}
           </div>
         } @else if (pageData()?.content?.length === 0) {
           <div class="empty-state p-12 text-center text-secondary text-sm">
-            لا توجد تذاكر تطابق معايير البحث.
+            {{ i18n.t('ticketList.noTickets') }}
           </div>
         } @else {
           <div class="table-responsive overflow-x-auto">
-            <table class="data-table w-full text-right text-xs">
+            <table class="data-table w-full text-xs">
               <thead>
                 <tr>
-                  <th style="min-width: 140px; white-space: nowrap;">رقم التذكرة</th>
-                  <th>عنوان الطلب والمشكلة</th>
-                  <th style="min-width: 110px; white-space: nowrap;">الأولوية</th>
-                  <th style="min-width: 130px; white-space: nowrap;">الحالة</th>
-                  <th style="min-width: 130px; white-space: nowrap;">حالة SLA</th>
-                  <th style="min-width: 150px; white-space: nowrap;">المسؤول</th>
-                  <th style="min-width: 160px; white-space: nowrap;">تاريخ الإنشاء</th>
+                  <th style="width: 140px; white-space: nowrap;">{{ i18n.t('ticketList.colNumber') }}</th>
+                  <th>{{ i18n.t('ticketList.colTitle') }}</th>
+                  <th style="width: 100px; white-space: nowrap;">{{ i18n.t('ticketList.colPriority') }}</th>
+                  <th style="width: 110px; white-space: nowrap;">{{ i18n.t('ticketList.colStatus') }}</th>
+                  <th style="width: 110px; white-space: nowrap;">{{ i18n.t('ticketList.colSla') }}</th>
+                  <th style="width: 140px; white-space: nowrap;">{{ i18n.t('ticketList.colAssignee') }}</th>
+                  <th style="width: 150px; white-space: nowrap;">{{ i18n.t('ticketList.colCreatedAt') }}</th>
                 </tr>
               </thead>
               <tbody>
                 @for (t of pageData()?.content; track t.publicId) {
                   <tr class="hover-row">
-                    <td class="font-mono font-bold">
+                    <td class="font-mono font-bold" style="white-space: nowrap;">
                       <a [routerLink]="['/tickets', t.publicId]" class="ticket-key-link">
                         {{ t.ticketNumber }}
                       </a>
@@ -139,31 +158,31 @@ import { Ticket, PageResponse } from '../../../core/models/models';
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                       <span class="badge" [ngClass]="'badge-priority-' + t.priority.toLowerCase()">
-                        {{ t.priority }}
+                        {{ i18n.formatPriority(t.priority) }}
                       </span>
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                       <span class="badge" [ngClass]="'badge-status-' + t.status.toLowerCase()">
-                        {{ formatStatus(t.status) }}
+                        {{ i18n.formatStatus(t.status) }}
                       </span>
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                       <span class="badge" [ngClass]="'badge-sla-' + t.slaStatus.toLowerCase()">
-                        {{ formatSla(t.slaStatus) }}
+                        {{ i18n.formatSla(t.slaStatus) }}
                       </span>
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                       <div class="text-xs">
                         @if (t.assignedAgentFullName) {
-                          <span class="font-medium">{{ t.assignedAgentFullName }}</span>
+                          <span class="font-medium text-primary">{{ t.assignedAgentFullName }}</span>
                         } @else {
-                          <span class="text-secondary italic">غير مسند</span>
+                          <span class="text-tertiary italic">{{ i18n.t('common.unassigned') }}</span>
                         }
                       </div>
                     </td>
-                    <td class="text-secondary">
+                    <td class="text-secondary" style="white-space: nowrap;">
                       {{ t.createdAt | date:'short' }}
                     </td>
                   </tr>
@@ -173,10 +192,9 @@ import { Ticket, PageResponse } from '../../../core/models/models';
           </div>
 
           <!-- Pagination Bar -->
-          <div class="pagination-bar p-3.5 border-t flex justify-between items-center text-xs text-secondary">
+          <div class="pagination-bar p-3 border-t flex justify-between items-center text-xs text-secondary">
             <div>
-              صفحة {{ (pageData()?.pageNumber ?? 0) + 1 }} من {{ pageData()?.totalPages || 1 }} 
-              ({{ pageData()?.totalElements ?? 0 }} تذكرة)
+              {{ getPageInfo() }}
             </div>
             <div class="flex items-center gap-2">
               <button 
@@ -184,14 +202,14 @@ import { Ticket, PageResponse } from '../../../core/models/models';
                 [disabled]="(pageData()?.pageNumber ?? 0) === 0"
                 (click)="goToPage((pageData()?.pageNumber ?? 0) - 1)"
               >
-                السابق
+                {{ i18n.t('ticketList.prev') }}
               </button>
               <button 
                 class="btn btn-secondary btn-sm" 
                 [disabled]="(pageData()?.pageNumber ?? 0) >= (pageData()?.totalPages ?? 1) - 1"
                 (click)="goToPage((pageData()?.pageNumber ?? 0) + 1)"
               >
-                التالي
+                {{ i18n.t('ticketList.next') }}
               </button>
             </div>
           </div>
@@ -201,42 +219,106 @@ import { Ticket, PageResponse } from '../../../core/models/models';
   `,
   styles: [`
     .ticket-list-page {
-      max-width: 1320px;
-      margin: 0 auto;
+      width: 100%;
+      padding-bottom: 24px;
     }
-    .filter-card, .card {
-      background: var(--bg-surface);
-      border-color: var(--border-subtle);
-    }
-    .input-field, .select-field {
-      height: 38px;
-      border-radius: 8px;
+    .toolbar-bar {
+      background: var(--bg-card);
       border: 1px solid var(--border-subtle);
-      background: var(--bg-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .search-box {
+      width: 250px;
+      max-width: 100%;
+    }
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      inset-inline-start: 10px;
+      color: var(--text-tertiary);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .toolbar-search-input {
+      width: 100%;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
       color: var(--text-primary);
-      padding: 0 0.75rem;
-      font-size: 0.85rem;
-    }
-    .input-field:focus, .select-field:focus {
+      padding-inline-start: 30px;
+      padding-inline-end: 10px;
+      font-size: 0.8125rem;
       outline: none;
+      transition: all var(--transition-fast);
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+    .toolbar-search-input:focus {
       border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-glow);
     }
-    .data-table {
-      border-collapse: collapse;
+    .toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--border-subtle);
+      margin: 0 4px;
     }
-    .data-table th {
-      padding: 0.8rem 0.6rem;
-      border-bottom: 1px solid var(--border-subtle);
+    .toolbar-select {
+      height: 32px;
+      padding: 0 10px;
+      padding-inline-end: 26px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 0.775rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: all var(--transition-fast);
+      font-family: inherit;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 9px) center;
+    }
+    :host-context([dir="rtl"]) .toolbar-select {
+      background-position: 9px center;
+    }
+    .toolbar-select:hover {
+      border-color: var(--border-strong);
+    }
+    .toolbar-select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    .clear-filters-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
       color: var(--text-secondary);
-      font-weight: 600;
       font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-family: inherit;
     }
-    .data-table td {
-      padding: 0.8rem 0.6rem;
-      border-bottom: 1px solid var(--border-subtle);
+    .clear-filters-btn:hover {
+      color: var(--sla-breached);
+      border-color: var(--sla-breached-border);
+      background: var(--sla-breached-bg);
     }
     .hover-row:hover {
-      background: rgba(125,125,125,0.05);
+      background: rgba(125,125,125,0.03);
     }
     .ticket-key-link {
       color: var(--accent-primary);
@@ -249,30 +331,6 @@ import { Ticket, PageResponse } from '../../../core/models/models';
     .ticket-title-link:hover {
       color: var(--accent-primary);
     }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .badge-priority-critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-    .badge-priority-high { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .badge-priority-medium { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-    .badge-priority-low { background: rgba(107, 114, 128, 0.15); color: #8E8E93; }
-
-    .badge-status-open { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-    .badge-status-assigned { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
-    .badge-status-in_progress { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-    .badge-status-waiting_for_user { background: rgba(107, 114, 128, 0.12); color: #8E8E93; }
-    .badge-status-resolved { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-    .badge-status-closed { background: rgba(107, 114, 128, 0.12); color: #8E8E93; }
-    .badge-status-reopened { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-
-    .badge-sla-within_sla { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-    .badge-sla-at_risk { background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-weight: 700; }
-    .badge-sla-breached { background: rgba(239, 68, 68, 0.18); color: #ef4444; font-weight: 700; }
   `]
 })
 export class TicketListComponent implements OnInit {
@@ -281,6 +339,7 @@ export class TicketListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   public auth = inject(AuthService);
+  public i18n = inject(I18nService);
 
   pageData = signal<PageResponse<Ticket> | null>(null);
   loading = signal<boolean>(false);
@@ -350,11 +409,13 @@ export class TicketListComponent implements OnInit {
     this.loadTickets();
   }
 
-  formatStatus(status: string): string {
-    return status ? status.replace(/_/g, ' ') : '';
-  }
-
-  formatSla(sla: string): string {
-    return sla ? sla.replace(/_/g, ' ') : '';
+  getPageInfo(): string {
+    const page = (this.pageData()?.pageNumber ?? 0) + 1;
+    const totalPages = this.pageData()?.totalPages || 1;
+    const total = this.pageData()?.totalElements ?? 0;
+    return this.i18n.t('ticketList.pageOf')
+      .replace('{page}', String(page))
+      .replace('{totalPages}', String(totalPages))
+      .replace('{total}', String(total));
   }
 }

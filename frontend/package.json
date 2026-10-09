@@ -26,6 +26,7 @@
     "@angular/cli": "^18.2.0",
     "@angular/compiler-cli": "^18.2.0",
     "@types/node": "^18.18.0",
+    "puppeteer-core": "^25.13.0",
     "typescript": "~5.5.2"
   }
 }

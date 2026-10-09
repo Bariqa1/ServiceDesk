@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-login',
@@ -15,56 +16,98 @@ import { ThemeService } from '../../../core/services/theme.service';
       <div class="ambient-glow glow-1"></div>
       <div class="ambient-glow glow-2"></div>
 
-      <!-- Top Utility Bar (Theme Switcher) -->
+      <!-- Top Utility Bar (Language & Theme Switcher) -->
       <div class="top-bar">
-        <div class="app-chip">
-          <span class="chip-status"></span>
-          <span>Core Enterprise Architecture</span>
+        <div class="brand-chip">
+          <div class="logo-chip-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span>ServiceDesk</span>
         </div>
-        <button class="theme-toggle-btn" (click)="themeService.toggleTheme()" [title]="themeService.isDarkMode() ? 'التبديل للوضع الفاتح' : 'التبديل للوضع الداكن'">
-          @if (themeService.isDarkMode()) {
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            <span>فاتح</span>
-          } @else {
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <span>داكن</span>
-          }
-        </button>
+
+        <div class="flex items-center gap-2">
+          <!-- Language Toggle Button -->
+          <button 
+            class="top-toggle-btn" 
+            (click)="i18n.toggleLanguage()" 
+            [title]="i18n.isArabic() ? 'Switch to English' : 'التحويل إلى العربية'"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span>{{ i18n.isArabic() ? 'English' : 'عربي' }}</span>
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button 
+            class="top-toggle-btn" 
+            (click)="themeService.toggleTheme()" 
+            [title]="themeService.isDarkMode() ? i18n.t('nav.themeLight') : i18n.t('nav.themeDark')"
+          >
+            @if (themeService.isDarkMode()) {
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            } @else {
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            }
+          </button>
+        </div>
       </div>
 
-      <!-- Main Login Container -->
+      <!-- Main Login Container (Apple Minimalist Frosted Card) -->
       <div class="login-card glass-panel animate-fade-in">
         <div class="login-header">
           <div class="logo-circle">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
           </div>
-          <h1 class="login-title">ServiceDesk Enterprise</h1>
-          <p class="login-subtitle">نظام إدارة طلبات وتذاكر الدعم الفني ومحرك اتفاقيات الـ SLA التلقائي</p>
+          <h1 class="login-title">{{ i18n.t('login.title') }}</h1>
+          <p class="login-subtitle">{{ i18n.t('login.subtitle') }}</p>
         </div>
 
         @if (errorMessage()) {
           <div class="alert alert-danger animate-fade-in">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
             <span>{{ errorMessage() }}</span>
           </div>
         }
 
         <form (ngSubmit)="onSubmit()" class="login-form">
           <div class="form-group">
-            <label class="form-label" for="username">اسم المستخدم</label>
+            <label class="form-label" for="username">{{ i18n.t('login.username') }}</label>
             <input
               id="username"
               type="text"
               class="form-input"
               [(ngModel)]="username"
               name="username"
-              placeholder="e.g. manager, lead, agent, employee"
+              [placeholder]="i18n.t('login.usernamePlaceholder')"
               required
             />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="password">كلمة المرور</label>
+            <label class="form-label" for="password">{{ i18n.t('login.password') }}</label>
             <input
               id="password"
               type="password"
@@ -78,9 +121,9 @@ import { ThemeService } from '../../../core/services/theme.service';
 
           <button type="submit" class="btn btn-primary btn-block" [disabled]="isLoading()">
             @if (isLoading()) {
-              <span>جاري التحقق والربط...</span>
+              <span>{{ i18n.t('login.submitting') }}</span>
             } @else {
-              <span>تسجيل الدخول للنظام</span>
+              <span>{{ i18n.t('login.submit') }}</span>
             }
           </button>
         </form>
@@ -88,40 +131,40 @@ import { ThemeService } from '../../../core/services/theme.service';
         <!-- 1-Click Fast Demo Logins -->
         <div class="demo-section">
           <div class="demo-divider">
-            <span>تسجيل دخول تجريبي فوري (نقرة واحدة)</span>
+            <span>{{ i18n.t('login.demoSection') }}</span>
           </div>
 
           <div class="demo-grid">
-            <button type="button" class="demo-btn manager-btn" (click)="quickLogin('manager', 'Manager@2026')">
+            <button type="button" class="demo-btn" (click)="quickLogin('manager', 'Manager@2026')">
               <div class="demo-meta">
-                <span class="demo-role">مدير الخدمة</span>
+                <span class="demo-role">{{ i18n.t('login.roleManager') }}</span>
                 <span class="demo-user">manager</span>
               </div>
-              <span class="demo-badge">كامل الصلاحيات</span>
+              <span class="demo-badge">{{ i18n.t('login.roleManagerBadge') }}</span>
             </button>
 
-            <button type="button" class="demo-btn lead-btn" (click)="quickLogin('lead', 'Lead@2026')">
+            <button type="button" class="demo-btn" (click)="quickLogin('lead', 'Lead@2026')">
               <div class="demo-meta">
-                <span class="demo-role">رئيس الفريق</span>
+                <span class="demo-role">{{ i18n.t('login.roleLead') }}</span>
                 <span class="demo-user">lead</span>
               </div>
-              <span class="demo-badge">إدارة وتوزيع</span>
+              <span class="demo-badge">{{ i18n.t('login.roleLeadBadge') }}</span>
             </button>
 
-            <button type="button" class="demo-btn agent-btn" (click)="quickLogin('agent', 'Agent@2026')">
+            <button type="button" class="demo-btn" (click)="quickLogin('agent', 'Agent@2026')">
               <div class="demo-meta">
-                <span class="demo-role">فني الدعم</span>
+                <span class="demo-role">{{ i18n.t('login.roleAgent') }}</span>
                 <span class="demo-user">agent</span>
               </div>
-              <span class="demo-badge">معالجة وتحديث</span>
+              <span class="demo-badge">{{ i18n.t('login.roleAgentBadge') }}</span>
             </button>
 
-            <button type="button" class="demo-btn emp-btn" (click)="quickLogin('employee', 'Emp@2026')">
+            <button type="button" class="demo-btn" (click)="quickLogin('employee', 'Emp@2026')">
               <div class="demo-meta">
-                <span class="demo-role">الموظف</span>
+                <span class="demo-role">{{ i18n.t('login.roleEmployee') }}</span>
                 <span class="demo-user">employee</span>
               </div>
-              <span class="demo-badge">طالب الخدمة</span>
+              <span class="demo-badge">{{ i18n.t('login.roleEmployeeBadge') }}</span>
             </button>
           </div>
         </div>
@@ -145,67 +188,70 @@ import { ThemeService } from '../../../core/services/theme.service';
     .ambient-glow {
       position: absolute;
       border-radius: 50%;
-      filter: blur(120px);
+      filter: blur(140px);
       pointer-events: none;
       z-index: 0;
-      opacity: 0.18;
+      opacity: 0.15;
     }
     .glow-1 {
-      width: 480px;
-      height: 480px;
+      width: 440px;
+      height: 440px;
       background: #0071E3;
-      top: -100px;
-      right: -100px;
+      top: -80px;
+      right: -80px;
     }
     .glow-2 {
-      width: 420px;
-      height: 420px;
+      width: 380px;
+      height: 380px;
       background: #AF52DE;
-      bottom: -80px;
-      left: -80px;
+      bottom: -60px;
+      left: -60px;
     }
 
     .top-bar {
       position: absolute;
-      top: 24px;
-      left: 32px;
-      right: 32px;
+      top: 20px;
+      left: 28px;
+      right: 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 10;
     }
 
-    .app-chip {
+    .brand-chip {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      box-shadow: var(--shadow-sm);
-    }
-    .chip-status {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--sla-within);
-      box-shadow: 0 0 8px var(--sla-within);
-    }
-
-    .theme-toggle-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      padding: 5px 12px;
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-full);
       font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .logo-chip-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      background: var(--accent-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      font-size: 0.775rem;
       font-weight: 500;
       color: var(--text-primary);
       cursor: pointer;
@@ -213,82 +259,84 @@ import { ThemeService } from '../../../core/services/theme.service';
       transition: all var(--transition-fast);
       font-family: inherit;
     }
-    .theme-toggle-btn:hover {
+    .top-toggle-btn:hover {
       border-color: var(--accent-primary);
       background: var(--accent-glow);
+      color: var(--accent-primary);
     }
 
     .login-card {
       width: 100%;
-      max-width: 460px;
-      padding: 40px 36px;
+      max-width: 430px;
+      padding: 34px 30px;
       border-radius: var(--radius-lg);
       position: relative;
       z-index: 1;
       backdrop-filter: blur(20px);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border-strong);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-subtle);
       background: var(--bg-card);
     }
 
     .login-header {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
     .logo-circle {
-      width: 54px;
-      height: 54px;
-      margin: 0 auto 16px;
-      border-radius: var(--radius-md);
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      border-radius: 12px;
       background: var(--accent-primary);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px var(--accent-glow);
+      box-shadow: 0 4px 14px var(--accent-glow);
     }
 
     .login-title {
-      font-size: 1.45rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: var(--text-primary);
       letter-spacing: -0.02em;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .login-subtitle {
-      font-size: 0.8125rem;
+      font-size: 0.775rem;
       color: var(--text-secondary);
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .form-label {
-      font-size: 0.8125rem;
+      font-size: 0.775rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--text-secondary);
     }
 
     .form-input {
       width: 100%;
-      padding: 10px 14px;
+      padding: 9px 12px;
       background: var(--bg-input);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
       color: var(--text-primary);
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       font-family: inherit;
       transition: all var(--transition-fast);
     }
@@ -300,20 +348,20 @@ import { ThemeService } from '../../../core/services/theme.service';
 
     .btn-block {
       width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      font-size: 0.9375rem;
+      padding: 10px;
+      margin-top: 4px;
+      font-size: 0.875rem;
       font-weight: 600;
     }
 
     .alert {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
+      gap: 8px;
+      padding: 10px 12px;
       border-radius: var(--radius-sm);
-      font-size: 0.8125rem;
-      margin-bottom: 18px;
+      font-size: 0.775rem;
+      margin-bottom: 16px;
     }
     .alert-danger {
       background: var(--sla-breached-bg);
@@ -322,13 +370,13 @@ import { ThemeService } from '../../../core/services/theme.service';
     }
 
     .demo-section {
-      margin-top: 28px;
+      margin-top: 24px;
     }
 
     .demo-divider {
       text-align: center;
       position: relative;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .demo-divider::before {
       content: '';
@@ -342,8 +390,8 @@ import { ThemeService } from '../../../core/services/theme.service';
     .demo-divider span {
       position: relative;
       background: var(--bg-card);
-      padding: 0 12px;
-      font-size: 0.725rem;
+      padding: 0 10px;
+      font-size: 0.7rem;
       color: var(--text-tertiary);
       font-weight: 500;
     }
@@ -351,27 +399,27 @@ import { ThemeService } from '../../../core/services/theme.service';
     .demo-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
     .demo-btn {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
+      gap: 3px;
       cursor: pointer;
       transition: all var(--transition-fast);
       font-family: inherit;
-      text-align: right;
+      text-align: start;
     }
     .demo-btn:hover {
       border-color: var(--accent-primary);
       background: var(--accent-glow);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: var(--shadow-sm);
     }
 
@@ -381,21 +429,21 @@ import { ThemeService } from '../../../core/services/theme.service';
       width: 100%;
     }
     .demo-role {
-      font-size: 0.8125rem;
+      font-size: 0.775rem;
       font-weight: 600;
       color: var(--text-primary);
     }
     .demo-user {
-      font-size: 0.6875rem;
+      font-size: 0.65rem;
       color: var(--text-tertiary);
       font-family: 'JetBrains Mono', monospace;
     }
     .demo-badge {
-      font-size: 0.65rem;
+      font-size: 0.625rem;
       font-weight: 500;
       color: var(--accent-primary);
       background: var(--accent-glow);
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: var(--radius-full);
       align-self: flex-start;
     }
@@ -405,6 +453,7 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   public themeService = inject(ThemeService);
+  public i18n = inject(I18nService);
 
   username = '';
   password = '';
@@ -424,7 +473,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(err.error?.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+        this.errorMessage.set(err.error?.message || (this.i18n.isArabic() ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'Invalid username or password'));
       }
     });
   }

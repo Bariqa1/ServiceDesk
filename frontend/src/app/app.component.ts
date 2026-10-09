@@ -5,6 +5,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { AuthService } from './core/services/auth.service';
 import { ThemeService } from './core/services/theme.service';
+import { I18nService } from './core/services/i18n.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,7 @@ import { ThemeService } from './core/services/theme.service';
   imports: [CommonModule, RouterOutlet, NavbarComponent, SidebarComponent],
   template: `
     @if (auth.isLoggedIn()) {
-      <div class="app-layout">
+      <div class="app-layout" [attr.dir]="i18n.dir()">
         <app-navbar />
         <div class="app-body">
           <app-sidebar />
@@ -22,7 +23,9 @@ import { ThemeService } from './core/services/theme.service';
         </div>
       </div>
     } @else {
-      <router-outlet />
+      <div [attr.dir]="i18n.dir()">
+        <router-outlet />
+      </div>
     }
   `,
   styles: [`
@@ -38,13 +41,15 @@ import { ThemeService } from './core/services/theme.service';
       flex: 1;
       overflow: hidden;
       min-height: 0;
-      margin-top: 16px;
+      margin-top: 14px;
+      padding: 0 20px 20px 20px;
+      gap: 16px;
     }
     .main-content {
       flex: 1 1 0%;
       min-width: 0;
-      padding: 0 24px 24px 24px;
       overflow-y: auto;
+      overflow-x: hidden;
       background: var(--bg-primary);
     }
   `]
@@ -52,4 +57,5 @@ import { ThemeService } from './core/services/theme.service';
 export class AppComponent {
   public auth = inject(AuthService);
   public theme = inject(ThemeService);
+  public i18n = inject(I18nService);
 }

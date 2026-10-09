@@ -3,8 +3,8 @@
    ========================================================================== */
 
 :root {
-  /* Core Light Palette */
-  --bg-primary: #F7F8FA;
+  /* Core Light Palette - Apple Clean */
+  --bg-primary: #F5F5F7;
   --bg-secondary: #FFFFFF;
   --bg-surface: #FFFFFF;
   --bg-card: #FFFFFF;
@@ -14,32 +14,32 @@
   --text-secondary: #6E6E73;
   --text-tertiary: #86868B;
   
-  --border-subtle: #E5E5EA;
-  --border-strong: #D1D1D6;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
   
   --accent-primary: #0071E3;
   --accent-hover: #0077ED;
   --accent-glow: rgba(0, 113, 227, 0.12);
   
-  /* SLA Status Colors */
+  /* SLA Status Colors - Apple System */
   --sla-within: #34C759;
   --sla-within-bg: rgba(52, 199, 89, 0.12);
-  --sla-within-border: rgba(52, 199, 89, 0.3);
+  --sla-within-border: rgba(52, 199, 89, 0.28);
   
   --sla-at-risk: #FF9500;
   --sla-at-risk-bg: rgba(255, 149, 0, 0.12);
-  --sla-at-risk-border: rgba(255, 149, 0, 0.35);
+  --sla-at-risk-border: rgba(255, 149, 0, 0.28);
   
   --sla-breached: #FF3B30;
   --sla-breached-bg: rgba(255, 59, 48, 0.12);
-  --sla-breached-border: rgba(255, 59, 48, 0.35);
+  --sla-breached-border: rgba(255, 59, 48, 0.28);
 
   --color-purple: #AF52DE;
   --color-purple-bg: rgba(175, 82, 222, 0.12);
 
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.02);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -52,22 +52,22 @@
 }
 
 html.dark {
-  --bg-primary: #0D0E12;
-  --bg-secondary: #14161D;
-  --bg-surface: #181A22;
-  --bg-card: #181A22;
-  --bg-input: #1F222D;
+  --bg-primary: #000000;
+  --bg-secondary: #161618;
+  --bg-surface: #1C1C1E;
+  --bg-card: #1C1C1E;
+  --bg-input: #2C2C2E;
   
   --text-primary: #F5F5F7;
-  --text-secondary: #9DA1B2;
-  --text-tertiary: #6E7282;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #636366;
   
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
   
-  --accent-primary: #2997FF;
-  --accent-hover: #47A7FF;
-  --accent-glow: rgba(41, 151, 255, 0.2);
+  --accent-primary: #0A84FF;
+  --accent-hover: #409CFF;
+  --accent-glow: rgba(10, 132, 255, 0.2);
   
   --sla-within: #30D158;
   --sla-within-bg: rgba(48, 209, 88, 0.16);
@@ -99,13 +99,29 @@ html.dark {
 }
 
 body {
-  font-family: 'IBM Plex Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "IBM Plex Sans Arabic", system-ui, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.5;
+  letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
-  direction: rtl;
   min-height: 100vh;
+}
+
+/* Custom Apple Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(142, 142, 147, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 142, 147, 0.55);
 }
 
 /* ==========================================================================
@@ -207,13 +223,27 @@ body {
 .mb-2 { margin-bottom: 8px; }
 .mb-3 { margin-bottom: 12px; }
 .mb-4 { margin-bottom: 16px; }
+.mb-5 { margin-bottom: 20px; }
 .mb-6 { margin-bottom: 24px; }
 .mb-8 { margin-bottom: 32px; }
 .mt-1 { margin-top: 4px; }
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 12px; }
 .mt-4 { margin-top: 16px; }
+.mt-5 { margin-top: 20px; }
 .mt-6 { margin-top: 24px; }
+.my-4 { margin-top: 16px; margin-bottom: 16px; }
+.my-5 { margin-top: 20px; margin-bottom: 20px; }
+
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-2\.5 { gap: 10px; }
+.gap-3 { gap: 12px; }
+.gap-3\.5 { gap: 14px; }
+.gap-4 { gap: 16px; }
+.gap-5 { gap: 20px; }
+.gap-6 { gap: 24px; }
+.gap-8 { gap: 32px; }
 
 /* ==========================================================================
    Typography Utilities
@@ -461,6 +491,37 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* Apple Segmented Control */
+.segmented-control {
+  display: inline-flex;
+  padding: 3px;
+  background: rgba(118, 118, 128, 0.1);
+  border-radius: 9px;
+  gap: 2px;
+  border: 1px solid var(--border-subtle);
+}
+.segmented-item {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+.segmented-item:hover {
+  color: var(--text-primary);
+}
+.segmented-item.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
 .btn-outline-danger {
   border: 1px solid var(--sla-breached);
   color: var(--sla-breached);
@@ -520,7 +581,7 @@ body {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: right;
+  text-align: start;
   font-size: 0.875rem;
 }
 

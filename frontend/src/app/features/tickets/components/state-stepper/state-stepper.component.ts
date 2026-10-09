@@ -1,13 +1,12 @@
-import { Component, Input, Output, EventEmitter, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Ticket, TicketStatus } from '../../../../core/models/models';
+import { I18nService } from '../../../../core/services/i18n.service';
 
 export interface WorkflowStep {
   key: TicketStatus;
-  title: string;
-  subtitle: string;
-  description: string;
-  icon: string;
+  titleKey: string;
+  subKey: string;
 }
 
 @Component({
@@ -15,30 +14,30 @@ export interface WorkflowStep {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="stepper-card card p-6 rounded-xl border">
+    <div class="stepper-card card p-4 rounded-xl border mb-5">
       <!-- Stepper Header -->
-      <div class="stepper-header flex flex-wrap justify-between items-center gap-3 mb-6 pb-4 border-b">
+      <div class="stepper-header flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="stepper-badge-title">مسار آلة الحالات (ITIL State Machine)</span>
+          <div class="flex items-center gap-2">
+            <span class="stepper-badge-title">{{ i18n.t('stepper.title') }}</span>
             <div class="live-pulse-dot" [class.pulse-active]="ticket?.status !== 'CLOSED'"></div>
           </div>
-          <p class="text-xs text-secondary">
-            مخطط بصري تفاعلي يراقب انتقال التذكرة عبر محطات دورة العمل وفق قواعد التحقق الصارمة.
+          <p class="text-[11px] text-secondary mt-0.5">
+            {{ i18n.t('stepper.desc') }}
           </p>
         </div>
 
         <div class="flex items-center gap-2">
-          <span class="text-xs text-secondary font-medium">الحالة الراهنة:</span>
+          <span class="text-xs text-secondary font-medium">{{ i18n.t('stepper.currentStage') }}:</span>
           <span class="badge" [ngClass]="'badge-status-' + (ticket?.status?.toLowerCase() || 'open')">
-            {{ formatStatus(ticket?.status) }}
+            {{ i18n.formatStatus(ticket?.status) }}
           </span>
         </div>
       </div>
 
       <!-- Main Linear Timeline Pipeline -->
       <div class="stepper-track-container">
-        <div class="stepper-track">
+        <div class="stepper-track" [class.track-ltr]="i18n.isEnglish()">
           @for (step of mainSteps; track step.key; let idx = $index; let last = $last) {
             <div 
               class="stepper-node" 
@@ -52,6 +51,7 @@ export interface WorkflowStep {
                 <div 
                   class="connector-line" 
                   [class.connector-completed]="isConnectorActive(idx)"
+                  [class.line-ltr]="i18n.isEnglish()"
                 ></div>
               }
 
@@ -63,24 +63,24 @@ export interface WorkflowStep {
               >
                 @if (isStepCompleted(step.key)) {
                   <!-- Completed Checkmark -->
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 } @else if (isCurrentStep(step.key)) {
                   <!-- Active Beacon Pulse -->
                   <div class="active-pulse-ring"></div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
                   </svg>
                 } @else if (canTransitionTo(step.key)) {
                   <!-- Actionable Transition -->
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                   </svg>
                 } @else {
                   <!-- Locked / Future State -->
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                   </svg>
@@ -88,26 +88,31 @@ export interface WorkflowStep {
               </div>
 
               <!-- Step Label & Info -->
-              <div class="node-meta text-center mt-3">
-                <div class="node-title font-semibold text-xs">{{ step.title }}</div>
-                <div class="node-subtitle text-[11px] text-secondary mt-0.5">{{ step.subtitle }}</div>
+              <div class="node-meta text-center mt-2">
+                <div class="node-title font-semibold text-xs">{{ i18n.t(step.titleKey) }}</div>
+                <div class="node-subtitle text-[10px] text-secondary mt-0.5">{{ i18n.t(step.subKey) }}</div>
 
                 <!-- Action Button for Available Next Steps -->
                 @if (canTransitionTo(step.key)) {
                   <button 
                     type="button" 
-                    class="step-action-btn mt-2" 
+                    class="step-action-btn mt-1.5" 
                     (click)="onNodeClick(step.key)"
                   >
-                    <span>نقل إلى هنا</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                      <polyline points="12 5 19 12 12 19"></polyline>
+                    <span>{{ i18n.t('stepper.moveHere') }}</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      @if (i18n.isArabic()) {
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                      } @else {
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                      }
                     </svg>
                   </button>
                 } @else if (isCurrentStep(step.key)) {
-                  <div class="current-state-pill mt-2">
-                    المرحلة الحالية
+                  <div class="current-state-pill mt-1.5">
+                    {{ i18n.t('stepper.currentStage') }}
                   </div>
                 }
               </div>
@@ -117,13 +122,13 @@ export interface WorkflowStep {
       </div>
 
       <!-- Branching & Auxiliary States Panel -->
-      <div class="branching-panel mt-6 pt-4 border-t flex flex-wrap items-center justify-between gap-4">
+      <div class="branching-panel mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-secondary">حالات المسار الاستثنائي والتعليق:</span>
-          <span class="text-[11px] text-tertiary">حالات فرعية يتم تفعيلها بانتظار إفادة الموظف أو إعادة الفتح</span>
+          <span class="text-xs font-semibold text-secondary">{{ i18n.t('stepper.branchHeader') }}</span>
+          <span class="text-[11px] text-tertiary">{{ i18n.t('stepper.branchDesc') }}</span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2.5">
           <!-- WAITING FOR USER Branch Button -->
           <div 
             class="branch-item"
@@ -131,8 +136,8 @@ export interface WorkflowStep {
             [class.branch-available]="canTransitionTo('WAITING_FOR_USER')"
           >
             <div class="branch-info">
-              <span class="branch-name">بانتظار الموظف (Waiting for User)</span>
-              <span class="branch-desc">تعليق المهلة مؤقتاً لحين استلام رد الموظف</span>
+              <span class="branch-name">{{ i18n.t('stepper.waitingForUser') }}</span>
+              <span class="branch-desc">{{ i18n.t('stepper.waitingForUserDesc') }}</span>
             </div>
 
             @if (canTransitionTo('WAITING_FOR_USER')) {
@@ -141,11 +146,14 @@ export interface WorkflowStep {
                 class="btn btn-secondary btn-sm"
                 (click)="onNodeClick('WAITING_FOR_USER')"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                <span>تعليق التذكرة</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ i18n.t('stepper.suspendBtn') }}</span>
               </button>
             } @else if (ticket?.status === 'WAITING_FOR_USER') {
-              <span class="branch-status-pill active-warning">قيد التعليق حالياً</span>
+              <span class="branch-status-pill active-warning">{{ i18n.t('stepper.suspendedBadge') }}</span>
             }
           </div>
 
@@ -156,8 +164,8 @@ export interface WorkflowStep {
             [class.branch-available]="canTransitionTo('REOPENED')"
           >
             <div class="branch-info">
-              <span class="branch-name">إعادة فتح (Reopened)</span>
-              <span class="branch-desc">إذا لم يتم حل المشكلة بعد تحديدها كمحلولة</span>
+              <span class="branch-name">{{ i18n.t('stepper.reopen') }}</span>
+              <span class="branch-desc">{{ i18n.t('stepper.reopenDesc') }}</span>
             </div>
 
             @if (canTransitionTo('REOPENED')) {
@@ -166,11 +174,14 @@ export interface WorkflowStep {
                 class="btn btn-warning btn-sm"
                 (click)="onNodeClick('REOPENED')"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>إعادة الفتح</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6"></path>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>{{ i18n.t('stepper.reopenBtn') }}</span>
               </button>
             } @else if (ticket?.status === 'REOPENED') {
-              <span class="branch-status-pill active-danger">معاد فتحها</span>
+              <span class="branch-status-pill active-danger">{{ i18n.t('stepper.reopenedBadge') }}</span>
             }
           </div>
         </div>
@@ -182,7 +193,6 @@ export interface WorkflowStep {
       background: var(--bg-card);
       border-color: var(--border-subtle);
       position: relative;
-      overflow: hidden;
     }
 
     .stepper-badge-title {
@@ -193,14 +203,14 @@ export interface WorkflowStep {
     }
 
     .live-pulse-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--sla-within);
       opacity: 0.5;
     }
     .live-pulse-dot.pulse-active {
-      box-shadow: 0 0 8px var(--sla-within);
+      box-shadow: 0 0 6px var(--sla-within);
       opacity: 1;
       animation: pulseGlow 2s infinite;
     }
@@ -213,14 +223,14 @@ export interface WorkflowStep {
     .stepper-track-container {
       width: 100%;
       overflow-x: auto;
-      padding: 10px 4px 6px 4px;
+      padding: 6px 4px 4px 4px;
     }
 
     .stepper-track {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      min-width: 650px;
+      min-width: 620px;
       position: relative;
     }
 
@@ -233,15 +243,22 @@ export interface WorkflowStep {
       z-index: 2;
     }
 
+    /* RTL connector (default in arabic): extends left */
     .connector-line {
       position: absolute;
-      top: 20px;
+      top: 17px;
       left: -50%;
       right: 50%;
-      height: 3px;
-      background: var(--border-strong);
+      height: 2.5px;
+      background: var(--border-subtle);
       z-index: -1;
       transition: background var(--transition-normal);
+    }
+
+    /* LTR connector: extends right */
+    .connector-line.line-ltr {
+      left: 50%;
+      right: -50%;
     }
 
     .connector-completed {
@@ -250,14 +267,14 @@ export interface WorkflowStep {
     }
 
     .node-circle {
-      width: 42px;
-      height: 42px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--bg-surface);
-      border: 2px solid var(--border-strong);
+      border: 1.5px solid var(--border-strong);
       color: var(--text-tertiary);
       cursor: default;
       transition: all var(--transition-fast);
@@ -269,7 +286,7 @@ export interface WorkflowStep {
       background: var(--accent-primary);
       border-color: var(--accent-primary);
       color: #FFFFFF;
-      box-shadow: 0 0 14px var(--accent-glow);
+      box-shadow: 0 0 10px var(--accent-glow);
     }
 
     /* Current Active Node */
@@ -277,15 +294,15 @@ export interface WorkflowStep {
       background: var(--bg-surface);
       border-color: var(--accent-primary);
       color: var(--accent-primary);
-      box-shadow: 0 0 20px var(--accent-glow);
-      transform: scale(1.08);
+      box-shadow: 0 0 16px var(--accent-glow);
+      transform: scale(1.05);
     }
 
     .active-pulse-ring {
       position: absolute;
-      inset: -5px;
+      inset: -4px;
       border-radius: 50%;
-      border: 2px solid var(--accent-primary);
+      border: 1.5px solid var(--accent-primary);
       opacity: 0.4;
       animation: pulseRing 2s infinite ease-out;
     }
@@ -297,7 +314,7 @@ export interface WorkflowStep {
 
     /* Actionable Step Node */
     .stepper-node.actionable .node-circle {
-      border: 2px dashed var(--accent-primary);
+      border: 1.5px dashed var(--accent-primary);
       color: var(--accent-primary);
       background: var(--accent-glow);
       cursor: pointer;
@@ -306,18 +323,18 @@ export interface WorkflowStep {
       background: var(--accent-primary);
       color: #fff;
       transform: scale(1.1);
-      box-shadow: 0 0 16px var(--accent-glow);
+      box-shadow: 0 0 14px var(--accent-glow);
     }
 
     /* Locked Step Node */
     .stepper-node.locked .node-circle {
-      opacity: 0.5;
+      opacity: 0.45;
       background: var(--bg-primary);
     }
 
     .node-meta {
       width: 100%;
-      max-width: 140px;
+      max-width: 130px;
     }
 
     .node-title {
@@ -327,9 +344,9 @@ export interface WorkflowStep {
     .step-action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      font-size: 0.6875rem;
+      gap: 3px;
+      padding: 3px 8px;
+      font-size: 0.65rem;
       font-weight: 600;
       color: #FFFFFF;
       background: var(--accent-primary);
@@ -337,7 +354,7 @@ export interface WorkflowStep {
       border-radius: var(--radius-full);
       cursor: pointer;
       transition: all var(--transition-fast);
-      box-shadow: 0 2px 8px var(--accent-glow);
+      box-shadow: 0 2px 6px var(--accent-glow);
       font-family: inherit;
     }
     .step-action-btn:hover {
@@ -347,9 +364,9 @@ export interface WorkflowStep {
 
     .current-state-pill {
       display: inline-block;
-      padding: 2px 8px;
-      font-size: 0.65rem;
-      font-weight: 700;
+      padding: 1px 7px;
+      font-size: 0.625rem;
+      font-weight: 600;
       color: var(--accent-primary);
       background: var(--accent-glow);
       border-radius: var(--radius-full);
@@ -363,8 +380,8 @@ export interface WorkflowStep {
     .branch-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 8px 14px;
+      gap: 10px;
+      padding: 6px 12px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
@@ -376,19 +393,19 @@ export interface WorkflowStep {
       flex-direction: column;
     }
     .branch-name {
-      font-size: 0.775rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-primary);
     }
     .branch-desc {
-      font-size: 0.6875rem;
+      font-size: 0.65rem;
       color: var(--text-secondary);
     }
 
     .branch-status-pill {
-      font-size: 0.6875rem;
+      font-size: 0.65rem;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: var(--radius-full);
     }
     .active-warning {
@@ -404,6 +421,8 @@ export interface WorkflowStep {
   `]
 })
 export class StateStepperComponent {
+  i18n = inject(I18nService);
+
   @Input() ticket: Ticket | null = null;
   @Input() isManager: boolean = false;
   @Input() isTeamLead: boolean = false;
@@ -415,41 +434,11 @@ export class StateStepperComponent {
 
   // Primary ITIL sequence
   readonly mainSteps: WorkflowStep[] = [
-    {
-      key: 'OPEN',
-      title: 'جديدة',
-      subtitle: 'Open Incident',
-      description: 'تسجيل البلاغ في النظام وبدء احتساب مهلة الاستجابة',
-      icon: 'sparkle'
-    },
-    {
-      key: 'ASSIGNED',
-      title: 'مسندة',
-      subtitle: 'Assigned to Agent',
-      description: 'تم توجيه التذكرة إلى فني أو فريق دعم معتمد',
-      icon: 'user'
-    },
-    {
-      key: 'IN_PROGRESS',
-      title: 'قيد المعالجة',
-      subtitle: 'In Progress (Active)',
-      description: 'الفني يجري الفحوصات التقنية ويعمل على الإصلاح',
-      icon: 'cog'
-    },
-    {
-      key: 'RESOLVED',
-      title: 'تم الحل',
-      subtitle: 'Resolved & Fixed',
-      description: 'تم إصلاح العطل وتوثيق ملخص خطوات الحل',
-      icon: 'check'
-    },
-    {
-      key: 'CLOSED',
-      title: 'مغلقة نهائياً',
-      subtitle: 'Closed & Archived',
-      description: 'إغلاق نهائي بعد تأكيد العميل أو انقضاء مهلة الاعتراض',
-      icon: 'archive'
-    }
+    { key: 'OPEN', titleKey: 'stepper.stepOpen', subKey: 'stepper.stepOpenSub' },
+    { key: 'ASSIGNED', titleKey: 'stepper.stepAssigned', subKey: 'stepper.stepAssignedSub' },
+    { key: 'IN_PROGRESS', titleKey: 'stepper.stepInProgress', subKey: 'stepper.stepInProgressSub' },
+    { key: 'RESOLVED', titleKey: 'stepper.stepResolved', subKey: 'stepper.stepResolvedSub' },
+    { key: 'CLOSED', titleKey: 'stepper.stepClosed', subKey: 'stepper.stepClosedSub' }
   ];
 
   isCurrentStep(status: TicketStatus): boolean {
@@ -460,15 +449,14 @@ export class StateStepperComponent {
     if (!this.ticket) return false;
     const current = this.ticket.status;
 
-    // Linear order mapping
     const order: Record<TicketStatus, number> = {
       'OPEN': 1,
       'ASSIGNED': 2,
       'IN_PROGRESS': 3,
-      'WAITING_FOR_USER': 3, // parallel to in progress
+      'WAITING_FOR_USER': 3,
       'RESOLVED': 4,
       'CLOSED': 5,
-      'REOPENED': 3 // repeats cycle
+      'REOPENED': 3
     };
 
     const currentOrder = order[current] || 0;
@@ -529,13 +517,8 @@ export class StateStepperComponent {
   }
 
   getStepTooltip(status: TicketStatus): string {
-    if (this.isCurrentStep(status)) return 'المرحلة الحالية قيد المعالجة';
-    if (this.isStepCompleted(status)) return 'تم اجتياز هذه المرحلة بنجاح';
-    if (this.canTransitionTo(status)) return `انقر للانتقال المباشر إلى: ${status}`;
-    return 'غير متاح حالياً وفق قواعد آلة الحالات (ITIL State Guards)';
-  }
-
-  formatStatus(status: string | undefined): string {
-    return status ? status.replace(/_/g, ' ') : '';
+    if (this.isCurrentStep(status)) return this.i18n.t('stepper.currentStage');
+    if (this.canTransitionTo(status)) return `${this.i18n.t('stepper.moveHere')}: ${status}`;
+    return status;
   }
 }

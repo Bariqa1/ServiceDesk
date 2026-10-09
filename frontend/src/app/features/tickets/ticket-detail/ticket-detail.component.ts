@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { Ticket, TicketStatus, UserSummary } from '../../../core/models/models';
 import { StateStepperComponent } from '../components/state-stepper/state-stepper.component';
 
@@ -16,29 +17,40 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
     @if (ticket()) {
       <div class="ticket-detail-page animate-fade-in">
         <!-- Top Action Bar -->
-        <div class="flex flex-wrap justify-between items-center gap-4 mb-5">
+        <div class="top-nav-bar flex flex-wrap justify-between items-center gap-3 mb-4">
           <div class="flex items-center gap-3">
             <a routerLink="/tickets" class="btn btn-secondary btn-sm">
-              ← الطابور
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                @if (i18n.isArabic()) {
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                } @else {
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                }
+              </svg>
+              <span>{{ i18n.t('ticketDetail.queue') }}</span>
             </a>
+
             <div class="flex items-center gap-2">
-              <span class="text-xl font-mono font-bold">{{ ticket()?.ticketNumber }}</span>
+              <span class="ticket-id-badge font-mono font-bold">{{ ticket()?.ticketNumber }}</span>
               <span class="badge" [ngClass]="'badge-status-' + ticket()?.status?.toLowerCase()">
-                {{ formatStatus(ticket()?.status) }}
+                {{ i18n.formatStatus(ticket()?.status) }}
               </span>
               <span class="badge" [ngClass]="'badge-priority-' + ticket()?.priority?.toLowerCase()">
-                {{ ticket()?.priority }}
+                {{ i18n.formatPriority(ticket()?.priority) }}
               </span>
               <span class="badge" [ngClass]="'badge-sla-' + ticket()?.slaStatus?.toLowerCase()">
-                {{ formatSla(ticket()?.slaStatus) }}
+                {{ i18n.formatSla(ticket()?.slaStatus) }}
               </span>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
             <button class="btn btn-secondary btn-sm" (click)="loadTicket()">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              <span>تحديث البيانات</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6"></path>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              <span>{{ i18n.t('ticketDetail.refresh') }}</span>
             </button>
           </div>
         </div>
@@ -54,98 +66,102 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
           (openResolve)="openResolveDialog()"
         />
 
-        <!-- Main Grid Layout -->
-        <div class="grid grid-cols-1 lg-grid-cols-3 gap-6">
-          <!-- Left Main Column (Details, Comments, WorkLogs, History) -->
-          <div class="lg-col-span-2 flex flex-col gap-6">
+        <!-- Main 2-Column Responsive Layout -->
+        <div class="ticket-grid">
+          <!-- Main Content Column (Details, Tabs, Comments, WorkLogs) -->
+          <div class="main-column flex flex-col gap-4">
             <!-- Ticket Info Card -->
-            <div class="card p-6 rounded-xl border">
-              <h1 class="text-xl font-bold mb-3">{{ ticket()?.title }}</h1>
-              <div class="description-body text-sm leading-relaxed whitespace-pre-line p-4 rounded-lg bg-body-subtle border mb-4">
+            <div class="card p-5 rounded-xl border">
+              <h1 class="ticket-headline text-lg font-bold mb-2.5">{{ ticket()?.title }}</h1>
+              
+              <div class="description-body text-sm leading-relaxed whitespace-pre-line p-3.5 rounded-lg bg-subtle border mb-3.5">
                 {{ ticket()?.description }}
               </div>
 
               @if (ticket()?.resolutionSummary) {
-                <div class="resolution-box p-4 rounded-lg border mb-4 bg-green-soft">
-                  <div class="text-xs font-bold uppercase text-green mb-1">ملخص خطوات الحل (Resolution Summary)</div>
+                <div class="resolution-box p-3.5 rounded-lg border mb-3.5 bg-green-soft">
+                  <div class="text-xs font-bold uppercase text-green mb-1">{{ i18n.t('ticketDetail.resolutionSummary') }}</div>
                   <div class="text-sm">{{ ticket()?.resolutionSummary }}</div>
                 </div>
               }
 
-              <div class="flex flex-wrap gap-4 text-xs text-secondary border-t pt-4">
-                <div>مقدم الطلب: <span class="font-semibold text-primary-color">{{ ticket()?.requesterFullName }}</span></div>
-                <div>البريد: <span class="font-semibold">{{ ticket()?.requesterEmail }}</span></div>
-                <div>تاريخ الإنشاء: <span class="font-semibold">{{ ticket()?.createdAt | date:'medium' }}</span></div>
+              <!-- Requester & Meta Strip -->
+              <div class="meta-strip flex flex-wrap gap-4 text-xs text-secondary border-t pt-3">
+                <div>{{ i18n.t('ticketDetail.requester') }}: <span class="font-semibold text-primary">{{ ticket()?.requesterFullName }}</span></div>
+                <div>{{ i18n.t('ticketDetail.email') }}: <span class="font-semibold">{{ ticket()?.requesterEmail }}</span></div>
+                <div>{{ i18n.t('ticketDetail.createdAt') }}: <span class="font-semibold">{{ ticket()?.createdAt | date:'short' }}</span></div>
                 @if (ticket()?.resolvedAt) {
-                  <div>تاريخ الحل: <span class="font-semibold text-green">{{ ticket()?.resolvedAt | date:'medium' }}</span></div>
+                  <div>{{ i18n.t('ticketDetail.resolvedAt') }}: <span class="font-semibold text-green">{{ ticket()?.resolvedAt | date:'short' }}</span></div>
                 }
               </div>
             </div>
 
-            <!-- Tabbed Interaction Card -->
+            <!-- Tabbed Interaction Card with Apple Segmented Control -->
             <div class="card rounded-xl border overflow-hidden">
-              <div class="tabs-header border-b flex">
-                <button 
-                  class="tab-btn" 
-                  [class.active]="activeTab() === 'comments'" 
-                  (click)="activeTab.set('comments')"
-                >
-                  النقاش والملاحظات ({{ ticket()?.comments?.length ?? 0 }})
-                </button>
-                <button 
-                  class="tab-btn" 
-                  [class.active]="activeTab() === 'worklogs'" 
-                  (click)="activeTab.set('worklogs')"
-                >
-                  سجل ساعات العمل ({{ ticket()?.workLogs?.length ?? 0 }})
-                </button>
-                <button 
-                  class="tab-btn" 
-                  [class.active]="activeTab() === 'audit'" 
-                  (click)="activeTab.set('audit')"
-                >
-                  سجل التتبع والتدقيق ({{ ticket()?.auditLogs?.length ?? 0 }})
-                </button>
+              <div class="tabs-toolbar p-3 border-b flex items-center justify-between">
+                <div class="segmented-control">
+                  <button 
+                    class="segmented-item" 
+                    [class.active]="activeTab() === 'comments'" 
+                    (click)="activeTab.set('comments')"
+                  >
+                    {{ i18n.t('ticketDetail.commentsTab') }} ({{ ticket()?.comments?.length ?? 0 }})
+                  </button>
+                  <button 
+                    class="segmented-item" 
+                    [class.active]="activeTab() === 'worklogs'" 
+                    (click)="activeTab.set('worklogs')"
+                  >
+                    {{ i18n.t('ticketDetail.worklogsTab') }} ({{ ticket()?.workLogs?.length ?? 0 }})
+                  </button>
+                  <button 
+                    class="segmented-item" 
+                    [class.active]="activeTab() === 'audit'" 
+                    (click)="activeTab.set('audit')"
+                  >
+                    {{ i18n.t('ticketDetail.auditTab') }} ({{ ticket()?.auditLogs?.length ?? 0 }})
+                  </button>
+                </div>
               </div>
 
-              <div class="tab-content p-5">
+              <div class="tab-content p-4">
                 <!-- Comments Tab -->
                 @if (activeTab() === 'comments') {
-                  <div class="comments-list flex flex-col gap-4 mb-6">
+                  <div class="comments-list flex flex-col gap-3 mb-4">
                     @for (c of ticket()?.comments; track c.publicId) {
-                      <div class="comment-item p-3.5 rounded-lg border" [class.internal-note]="c.internal">
+                      <div class="comment-item p-3 rounded-lg border" [class.internal-note]="c.internal">
                         <div class="flex justify-between items-center mb-1 text-xs">
                           <div class="flex items-center gap-2">
                             <span class="font-bold">{{ c.authorFullName }}</span>
                             @if (c.internal) {
-                              <span class="badge badge-internal">ملاحظة داخلية (Internal)</span>
+                              <span class="badge badge-internal">{{ i18n.t('ticketDetail.internalBadge') }}</span>
                             }
                           </div>
-                          <span class="text-secondary">{{ c.createdAt | date:'short' }}</span>
+                          <span class="text-secondary text-[11px]">{{ c.createdAt | date:'short' }}</span>
                         </div>
                         <div class="text-sm whitespace-pre-line">{{ c.content }}</div>
                       </div>
                     } @empty {
-                      <div class="text-center text-secondary text-sm py-4">لا توجد ملاحظات أو ردود بعد.</div>
+                      <div class="text-center text-secondary text-sm py-4">{{ i18n.t('ticketDetail.noComments') }}</div>
                     }
                   </div>
 
                   <!-- Post Comment Form -->
-                  <div class="comment-form-box p-4 rounded-xl border bg-body-subtle">
-                    <div class="text-xs font-bold uppercase mb-2">إضافة رد أو ملاحظة داخلية</div>
+                  <div class="comment-form-box p-3.5 rounded-xl border bg-subtle">
+                    <div class="text-xs font-semibold text-secondary uppercase mb-2">{{ i18n.t('ticketDetail.addComment') }}</div>
                     <textarea 
                       [(ngModel)]="newCommentText" 
                       rows="3" 
-                      placeholder="اكتب ردك أو تقريرك هنا..."
-                      class="textarea-field w-full mb-3"
+                      [placeholder]="i18n.t('ticketDetail.commentPlaceholder')"
+                      class="textarea-field w-full mb-2.5"
                     ></textarea>
                     <div class="flex justify-between items-center">
-                      <label class="flex items-center gap-2 text-xs cursor-pointer">
+                      <label class="flex items-center gap-2 text-xs cursor-pointer text-secondary">
                         <input type="checkbox" [(ngModel)]="isInternalNote" />
-                        <span>ملاحظة داخلية (مرئية للمشرفين والفنيين فقط)</span>
+                        <span>{{ i18n.t('ticketDetail.internalNote') }}</span>
                       </label>
                       <button class="btn btn-primary btn-sm" [disabled]="!newCommentText.trim() || postingComment()" (click)="addComment()">
-                        إرسال الرد
+                        {{ i18n.t('ticketDetail.sendComment') }}
                       </button>
                     </div>
                   </div>
@@ -153,40 +169,40 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
 
                 <!-- WorkLogs Tab -->
                 @if (activeTab() === 'worklogs') {
-                  <div class="worklogs-list flex flex-col gap-3 mb-6">
+                  <div class="worklogs-list flex flex-col gap-2.5 mb-4">
                     @for (w of ticket()?.workLogs; track w.publicId) {
                       <div class="worklog-item p-3 rounded-lg border flex justify-between items-center text-xs">
                         <div>
-                          <div class="font-bold text-sm">{{ w.agentFullName }} سجل {{ w.timeSpentMinutes }} دقيقة</div>
+                          <div class="font-bold text-sm">{{ w.agentFullName }} • {{ w.timeSpentMinutes }} {{ i18n.t('common.minutes') }}</div>
                           <div class="text-secondary mt-0.5">{{ w.description }}</div>
                         </div>
                         <span class="text-secondary">{{ w.loggedAt | date:'short' }}</span>
                       </div>
                     } @empty {
-                      <div class="text-center text-secondary text-sm py-4">لا توجد ساعات عمل مسجلة حتى الآن.</div>
+                      <div class="text-center text-secondary text-sm py-4">{{ i18n.t('ticketDetail.noWorklogs') }}</div>
                     }
                   </div>
 
                   <!-- Log Work Form -->
-                  <div class="worklog-form-box p-4 rounded-xl border bg-body-subtle">
-                    <div class="text-xs font-bold uppercase mb-2">تسجيل وقت العمل الفعلي</div>
-                    <div class="flex gap-3 mb-3">
+                  <div class="worklog-form-box p-3.5 rounded-xl border bg-subtle">
+                    <div class="text-xs font-semibold text-secondary uppercase mb-2">{{ i18n.t('ticketDetail.logWork') }}</div>
+                    <div class="flex flex-wrap gap-2.5 mb-2.5">
                       <input 
                         type="number" 
                         [(ngModel)]="timeSpentMinutes" 
-                        placeholder="الدقائق (مثال: 30)" 
-                        class="input-field w-36"
+                        [placeholder]="i18n.t('ticketDetail.minutesPlaceholder')" 
+                        class="input-field w-32"
                       />
                       <input 
                         type="text" 
                         [(ngModel)]="workLogDesc" 
-                        placeholder="وصف الإجراء (مثال: فحص إعدادات التوجيه والشبكة)" 
-                        class="input-field flex-1"
+                        [placeholder]="i18n.t('ticketDetail.workDescPlaceholder')" 
+                        class="input-field flex-1 min-w-[200px]"
                       />
                     </div>
                     <div class="flex justify-end">
                       <button class="btn btn-primary btn-sm" [disabled]="!timeSpentMinutes || !workLogDesc.trim()" (click)="logWork()">
-                        تسجيل الوقت
+                        {{ i18n.t('ticketDetail.saveWork') }}
                       </button>
                     </div>
                   </div>
@@ -194,22 +210,22 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
 
                 <!-- Audit History Tab -->
                 @if (activeTab() === 'audit') {
-                  <div class="audit-timeline flex flex-col gap-3">
+                  <div class="audit-timeline flex flex-col gap-2.5">
                     @for (a of ticket()?.auditLogs; track a.publicId) {
                       <div class="audit-item p-3 rounded-lg border text-xs">
                         <div class="flex justify-between items-center mb-1">
-                          <span class="font-bold text-primary-color">{{ a.action }}</span>
-                          <span class="text-secondary">{{ a.timestamp | date:'short' }}</span>
+                          <span class="font-bold text-primary">{{ a.action }}</span>
+                          <span class="text-secondary text-[11px]">{{ a.timestamp | date:'short' }}</span>
                         </div>
                         <div class="text-secondary">
-                          بواسطة <span class="font-semibold">{{ a.performedByFullName }}</span>
+                          {{ i18n.t('ticketDetail.auditBy') }} <span class="font-semibold text-primary">{{ a.performedByFullName }}</span>
                           @if (a.details) {
                             — <span>{{ a.details }}</span>
                           }
                         </div>
                       </div>
                     } @empty {
-                      <div class="text-center text-secondary text-sm py-4">لا يوجد سجل تدقيق متاح.</div>
+                      <div class="text-center text-secondary text-sm py-4">{{ i18n.t('ticketDetail.noAudit') }}</div>
                     }
                   </div>
                 }
@@ -217,21 +233,91 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
             </div>
           </div>
 
-          <!-- Right Sidebar Column (SLA Timers, Routing, Metadata) -->
-          <div class="flex flex-col gap-6">
-            <!-- SLA Monitor Card -->
-            <div class="card p-5 rounded-xl border">
-              <h2 class="text-sm font-bold uppercase tracking-wider mb-4 flex items-center justify-between">
-                <span>صحة اتفاقية مستوى الخدمة</span>
+          <!-- Inspector Sidebar Column (Routing & Assignment FIRST, then SLA) -->
+          <div class="sidebar-column flex flex-col gap-4">
+            <!-- Assignment & Routing Card (PLACED FIRST TO PREVENT OVERFLOW CUTOFF) -->
+            <div class="card p-4 rounded-xl border inspector-card">
+              <h2 class="inspector-title text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>{{ i18n.t('ticketDetail.detailsHeader') }}</span>
+              </h2>
+
+              <div class="property-list flex flex-col gap-2.5 text-xs">
+                <!-- Assigned Agent -->
+                <div class="flex justify-between items-center py-1 border-b">
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.assignee') }}</span>
+                  <div class="flex items-center gap-1.5 font-semibold text-primary">
+                    @if (ticket()?.assignedAgentFullName) {
+                      <span class="agent-avatar-sm">{{ ticket()?.assignedAgentFullName?.charAt(0) }}</span>
+                      <span>{{ ticket()?.assignedAgentFullName }}</span>
+                    } @else {
+                      <span class="text-tertiary italic">{{ i18n.t('common.unassigned') }}</span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Support Team -->
+                <div class="flex justify-between items-center py-1 border-b">
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.team') }}</span>
+                  <span class="font-semibold text-primary">{{ ticket()?.assignedTeamName || i18n.t('common.general') }}</span>
+                </div>
+
+                <!-- Category -->
+                <div class="flex justify-between items-center py-1 border-b">
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.category') }}</span>
+                  <span class="font-semibold text-primary">{{ ticket()?.categoryName }}</span>
+                </div>
+
+                <!-- Sub-Service -->
+                <div class="flex justify-between items-center py-1">
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.service') }}</span>
+                  <span class="font-semibold text-primary">{{ ticket()?.serviceName || i18n.t('common.general') }}</span>
+                </div>
+              </div>
+
+              <!-- Quick Assign Dropdown for Leads / Agents / Managers -->
+              @if (auth.isManager() || auth.isTeamLead() || auth.isAgent()) {
+                <div class="assign-action mt-3 pt-3 border-t">
+                  <label class="font-semibold text-[11px] text-secondary uppercase block mb-1.5">
+                    {{ i18n.t('ticketDetail.quickAssign') }}
+                  </label>
+                  <div class="flex gap-2">
+                    <select [(ngModel)]="selectedAgentPublicId" class="select-field flex-1 text-xs">
+                      <option value="">{{ i18n.t('ticketDetail.selectAgent') }}</option>
+                      @for (u of availableAgents(); track u.publicId) {
+                        <option [value]="u.publicId">{{ u.fullName }} ({{ u.teamName || i18n.t('common.general') }})</option>
+                      }
+                    </select>
+                    <button class="btn btn-secondary btn-sm" [disabled]="!selectedAgentPublicId" (click)="assignTicket()">
+                      {{ i18n.t('ticketDetail.assignBtn') }}
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- SLA Monitor Card (PLACED SECOND) -->
+            <div class="card p-4 rounded-xl border inspector-card">
+              <h2 class="inspector-title text-xs font-bold uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>{{ i18n.t('ticketDetail.slaHeader') }}</span>
+                </span>
                 <span class="badge" [ngClass]="'badge-sla-' + ticket()?.slaStatus?.toLowerCase()">
-                  {{ formatSla(ticket()?.slaStatus) }}
+                  {{ i18n.formatSla(ticket()?.slaStatus) }}
                 </span>
               </h2>
 
               <!-- SLA Resolution Target -->
-              <div class="sla-metric-box mb-4">
+              <div class="sla-metric-box mb-3">
                 <div class="flex justify-between text-xs font-medium mb-1">
-                  <span>الموعد النهائي للحل</span>
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.resolutionDeadline') }}</span>
                   <span class="font-bold">{{ ticket()?.resolutionDeadline | date:'short' }}</span>
                 </div>
                 <div class="progress-track">
@@ -242,18 +328,18 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
                   ></div>
                 </div>
                 <div class="flex justify-between text-[11px] text-secondary mt-1">
-                  <span>الوقت المنقضي</span>
+                  <span>{{ i18n.t('ticketDetail.elapsedTime') }}</span>
                   <span>{{ ticket()?.slaElapsedPercent }}%</span>
                 </div>
               </div>
 
               <!-- SLA Response Target -->
-              <div class="sla-metric-box mb-4">
-                <div class="flex justify-between text-xs font-medium mb-1">
-                  <span>مهلة الاستجابة الأولى</span>
+              <div class="sla-metric-box">
+                <div class="flex justify-between text-xs font-medium">
+                  <span class="text-secondary">{{ i18n.t('ticketDetail.firstResponse') }}</span>
                   <span class="font-bold">
                     @if (ticket()?.firstRespondedAt) {
-                      <span class="text-green">تمت الاستجابة</span>
+                      <span class="text-green">{{ i18n.t('ticketDetail.responded') }}</span>
                     } @else {
                       {{ ticket()?.responseDeadline | date:'short' }}
                     }
@@ -262,56 +348,8 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
               </div>
 
               @if (ticket()?.escalated) {
-                <div class="escalation-tag p-2.5 rounded-lg bg-red-soft text-red text-xs font-bold flex items-center gap-2">
-                  <span>⚠️ تم التصعيد التلقائي بسبب تجاوز مهلة الـ SLA</span>
-                </div>
-              }
-            </div>
-
-            <!-- Metadata & Assignment Card -->
-            <div class="card p-5 rounded-xl border">
-              <h2 class="text-sm font-bold uppercase tracking-wider mb-4">بيانات التوجيه والإسناد</h2>
-
-              <div class="property-list flex flex-col gap-3 text-xs">
-                <div class="flex justify-between py-1 border-b">
-                  <span class="text-secondary">الفني المسؤول</span>
-                  <span class="font-semibold">{{ ticket()?.assignedAgentFullName || 'غير مسند' }}</span>
-                </div>
-
-                <div class="flex justify-between py-1 border-b">
-                  <span class="text-secondary">الفريق الداعم</span>
-                  <span class="font-semibold">{{ ticket()?.assignedTeamName || 'عام' }}</span>
-                </div>
-
-                <div class="flex justify-between py-1 border-b">
-                  <span class="text-secondary">التصنيف الرئيسي</span>
-                  <span class="font-semibold">{{ ticket()?.categoryName }}</span>
-                </div>
-
-                <div class="flex justify-between py-1">
-                  <span class="text-secondary">الخدمة الفرعية</span>
-                  <span class="font-semibold">{{ ticket()?.serviceName || 'عام' }}</span>
-                </div>
-              </div>
-
-              <!-- Quick Assign Dropdown for Leads / Agents -->
-              @if (auth.isManager() || auth.isTeamLead() || auth.isAgent()) {
-                <div class="divider my-4"></div>
-                <div class="assign-action">
-                  <label class="font-semibold text-xs text-secondary uppercase block mb-1">
-                    إسناد التذكرة لفني
-                  </label>
-                  <div class="flex gap-2">
-                    <select [(ngModel)]="selectedAgentPublicId" class="select-field flex-1 text-xs">
-                      <option value="">اختر الفني</option>
-                      @for (u of availableAgents(); track u.publicId) {
-                        <option [value]="u.publicId">{{ u.fullName }} ({{ u.teamName || 'عام' }})</option>
-                      }
-                    </select>
-                    <button class="btn btn-secondary btn-sm" [disabled]="!selectedAgentPublicId" (click)="assignTicket()">
-                      إسناد
-                    </button>
-                  </div>
+                <div class="escalation-tag mt-3 p-2.5 rounded-lg bg-red-soft text-red text-xs font-semibold flex items-center gap-2">
+                  <span>⚠️ {{ i18n.t('ticketDetail.escalatedWarning') }}</span>
                 </div>
               }
             </div>
@@ -321,21 +359,23 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
         <!-- Resolve Dialog Modal -->
         @if (showResolveModal()) {
           <div class="modal-backdrop">
-            <div class="modal-card p-6 rounded-xl border">
-              <h2 class="text-lg font-bold mb-2">تسجيل حل التذكرة</h2>
-              <p class="text-xs text-secondary mb-4">
-                يرجى كتابة ملخص الإجراء المتخذ لحل المشكلة لتوثيقها في قاعدة المعرفة.
+            <div class="modal-card p-5 rounded-xl border animate-fade-in">
+              <h2 class="text-base font-bold mb-1.5">{{ i18n.t('modal.resolveTitle') }}</h2>
+              <p class="text-xs text-secondary mb-3">
+                {{ i18n.t('modal.resolveDesc') }}
               </p>
               <textarea 
                 [(ngModel)]="resolutionSummaryText" 
                 rows="4" 
-                placeholder="مثال: تم إعادة تهيئة الصلاحيات وتحديث شهادة الاتصال..." 
-                class="textarea-field w-full mb-4"
+                [placeholder]="i18n.t('modal.resolvePlaceholder')" 
+                class="textarea-field w-full mb-3"
               ></textarea>
               <div class="flex justify-end gap-2">
-                <button class="btn btn-secondary btn-sm" (click)="showResolveModal.set(false)">إلغاء</button>
+                <button class="btn btn-secondary btn-sm" (click)="showResolveModal.set(false)">
+                  {{ i18n.t('common.cancel') }}
+                </button>
                 <button class="btn btn-success btn-sm" [disabled]="!resolutionSummaryText.trim()" (click)="confirmResolve()">
-                  تأكيد وإغلاق المشكلة
+                  {{ i18n.t('modal.confirmResolve') }}
                 </button>
               </div>
             </div>
@@ -343,72 +383,75 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
         }
       </div>
     } @else if (loading()) {
-      <div class="p-16 text-center text-secondary">
-        جاري تحميل تفاصيل التذكرة...
+      <div class="p-16 text-center text-secondary text-sm">
+        {{ i18n.t('common.loading') }}
       </div>
     }
   `,
   styles: [`
     .ticket-detail-page {
-      max-width: 1320px;
+      max-width: 1280px;
       margin: 0 auto;
+      padding-bottom: 24px;
     }
-    .card {
-      background: var(--bg-surface);
-      border-color: var(--border-subtle);
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      align-items: start;
     }
-    .bg-body-subtle {
+    @media (max-width: 1024px) {
+      .ticket-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .ticket-id-badge {
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+    .ticket-headline {
+      color: var(--text-primary);
+      letter-spacing: -0.015em;
+    }
+    .bg-subtle {
       background: var(--bg-primary);
     }
     .bg-green-soft {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(52, 199, 89, 0.1);
+      border-color: rgba(52, 199, 89, 0.25);
     }
     .bg-red-soft {
-      background: rgba(239, 68, 68, 0.1);
-      border-color: rgba(239, 68, 68, 0.25);
+      background: rgba(255, 59, 48, 0.1);
+      border-color: rgba(255, 59, 48, 0.25);
     }
-    .text-green { color: #10b981; }
-    .text-red { color: #ef4444; }
-    .tabs-header {
-      background: var(--bg-surface);
+    .text-green { color: #34C759; }
+    .text-red { color: #FF3B30; }
+
+    .agent-avatar-sm {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
     }
-    .tab-btn {
-      padding: 0.75rem 1.25rem;
-      border: none;
-      background: transparent;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 2px solid transparent;
-      cursor: pointer;
-    }
-    .tab-btn.active {
-      color: var(--accent-primary);
-      border-bottom-color: var(--accent-primary);
-    }
+
     .badge-internal {
-      background: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
+      background: rgba(255, 149, 0, 0.12);
+      color: #FF9500;
     }
     .internal-note {
-      background: rgba(245, 158, 11, 0.04);
-      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(255, 149, 0, 0.04);
+      border-color: rgba(255, 149, 0, 0.25);
     }
-    .input-field, .select-field, .textarea-field {
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      padding: 0.5rem 0.75rem;
-      font-size: 0.85rem;
-    }
-    .input-field:focus, .select-field:focus, .textarea-field:focus {
-      outline: none;
-      border-color: var(--accent-primary);
-    }
+
     .progress-track {
-      height: 6px;
+      height: 5px;
       background: var(--border-subtle);
       border-radius: 9999px;
       overflow: hidden;
@@ -418,68 +461,27 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
       border-radius: 9999px;
       transition: width 0.3s ease;
     }
-    .progress-green { background: #10b981; }
-    .progress-orange { background: #f59e0b; }
-    .progress-red { background: #ef4444; }
+    .progress-green { background: #34C759; }
+    .progress-orange { background: #FF9500; }
+    .progress-red { background: #FF3B30; }
+
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 9999;
     }
     .modal-card {
-      background: var(--bg-surface);
+      background: var(--bg-card);
       border-color: var(--border-subtle);
       width: 90%;
-      max-width: 500px;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
-    }
-    .btn-success {
-      background: #10b981;
-      color: #fff;
-    }
-    .btn-warning {
-      background: #f59e0b;
-      color: #fff;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .badge-priority-critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-    .badge-priority-high { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-    .badge-priority-medium { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-    .badge-priority-low { background: rgba(107, 114, 128, 0.15); color: #8E8E93; }
-
-    .badge-status-open { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-    .badge-status-assigned { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
-    .badge-status-in_progress { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-    .badge-status-waiting_for_user { background: rgba(107, 114, 128, 0.12); color: #8E8E93; }
-    .badge-status-resolved { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-    .badge-status-closed { background: rgba(107, 114, 128, 0.12); color: #8E8E93; }
-    .badge-status-reopened { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-
-    .badge-sla-within_sla { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-    .badge-sla-at_risk { background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-weight: 700; }
-    .badge-sla-breached { background: rgba(239, 68, 68, 0.18); color: #ef4444; font-weight: 700; }
-    
-    .lg-grid-cols-3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .lg-col-span-2 {
-      grid-column: span 2 / span 2;
-    }
-    @media (max-width: 1024px) {
-      .lg-grid-cols-3 { grid-template-columns: 1fr; }
-      .lg-col-span-2 { grid-column: span 1 / span 1; }
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
     }
   `]
 })
@@ -488,6 +490,7 @@ export class TicketDetailComponent implements OnInit {
   private api = inject(ApiService);
   private ws = inject(WebSocketService);
   public auth = inject(AuthService);
+  public i18n = inject(I18nService);
 
   ticketPublicId = signal<string>('');
   ticket = signal<Ticket | null>(null);
@@ -541,30 +544,6 @@ export class TicketDetailComponent implements OnInit {
       },
       error: () => this.loading.set(false)
     });
-  }
-
-  canTransitionTo(targetStatus: TicketStatus): boolean {
-    const current = this.ticket()?.status;
-    if (!current) return false;
-
-    switch (current) {
-      case 'OPEN':
-        return targetStatus === 'IN_PROGRESS' || targetStatus === 'ASSIGNED';
-      case 'ASSIGNED':
-        return targetStatus === 'IN_PROGRESS';
-      case 'IN_PROGRESS':
-        return targetStatus === 'WAITING_FOR_USER' || targetStatus === 'RESOLVED';
-      case 'WAITING_FOR_USER':
-        return targetStatus === 'IN_PROGRESS' || targetStatus === 'RESOLVED';
-      case 'RESOLVED':
-        return targetStatus === 'CLOSED' || targetStatus === 'REOPENED';
-      case 'CLOSED':
-        return targetStatus === 'REOPENED';
-      case 'REOPENED':
-        return targetStatus === 'IN_PROGRESS';
-      default:
-        return false;
-    }
   }
 
   transitionStatus(status: TicketStatus) {
@@ -639,13 +618,5 @@ export class TicketDetailComponent implements OnInit {
     if (p >= 100) return 'progress-red';
     if (p >= 75) return 'progress-orange';
     return 'progress-green';
-  }
-
-  formatStatus(status: string | undefined): string {
-    return status ? status.replace(/_/g, ' ') : '';
-  }
-
-  formatSla(sla: string | undefined): string {
-    return sla ? sla.replace(/_/g, ' ') : '';
   }
 }

@@ -1,27 +1,59 @@
+# ==============================================================================
 # ServiceDesk - Git Ignore Configuration (.gitignore)
+# ==============================================================================
+
+# Environment & Secret Configurations
 .env
 .env.*
 !.env.example
 *.local
 
+# Operating System Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Files
 .idea/
 *.iml
 .vscode/*
 !.vscode/extensions.json
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
 
+# Java / Maven Build Artifacts
 target/
 **/target/
 *.class
 *.jar
 *.war
+*.ear
+*.nar
+dependency-reduced-pom.xml
+build/
 
+# Node.js & Angular Build Artifacts
 node_modules/
 **/node_modules/
 dist/
 **/dist/
 .angular/
+.npm/
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
+# Database & Log Files
 logs/
 *.log
 *.h2.db
+*.db
