@@ -479,8 +479,9 @@ export class StateStepperComponent {
 
   isConnectorActive(stepIndex: number): boolean {
     if (!this.ticket) return false;
-    const currentStep = this.mainSteps[stepIndex];
-    return this.isStepCompleted(this.mainSteps[stepIndex + 1]?.key || 'OPEN');
+    const nextKey = this.mainSteps[stepIndex + 1]?.key;
+    if (!nextKey) return false;
+    return this.isStepCompleted(nextKey) || this.isCurrentStep(nextKey);
   }
 
   canTransitionTo(targetStatus: TicketStatus): boolean {
