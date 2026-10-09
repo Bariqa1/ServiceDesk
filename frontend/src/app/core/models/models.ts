@@ -159,3 +159,65 @@ export interface TicketEvent {
   message: string;
   timestamp: string;
 }
+
+export interface AiTrajectoryStep {
+  stepIndex: number;
+  agent: string;
+  action: string;
+  thought: string;
+  toolCalled?: string;
+  observation?: string;
+  timestamp: string;
+}
+
+export interface AiKnowledgeMatch {
+  articleId: string;
+  title: string;
+  relevanceScore: number;
+  recommendedSolution: string;
+  rootCause: string;
+  category: string;
+}
+
+export interface AiDiagnosticResult {
+  toolName: string;
+  status: string;
+  details: Record<string, any>;
+}
+
+export interface AiAgentAnalysisResponse {
+  ticketNumber: string;
+  languageDetected: string;
+  predictedCategory: string;
+  calculatedPriority: string;
+  urgencyScore: number;
+  confidenceScore: number;
+  actionType: string;
+  requiresHumanApproval: boolean;
+  rootCauseAnalysis: string;
+  proposedResolution: string;
+  suggestedTeam: string;
+  slaBreachRisk: string;
+  trajectory: AiTrajectoryStep[];
+  knowledgeMatches: AiKnowledgeMatch[];
+  diagnosticResults: AiDiagnosticResult[];
+}
+
+export interface AiAuditLog {
+  id: number;
+  ticketId: number;
+  ticketNumber: string;
+  predictedCategory: string;
+  calculatedPriority: string;
+  confidenceScore: number;
+  actionType: string;
+  requiresHumanApproval: boolean;
+  approvalStatus: string;
+  rootCauseAnalysis: string;
+  proposedResolution: string;
+  trajectoryJson: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  createdAt: string;
+}
+

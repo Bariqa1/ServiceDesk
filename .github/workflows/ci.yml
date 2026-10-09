@@ -58,3 +58,27 @@ jobs:
 
       - name: Build Angular Application
         run: npm run build
+
+  ai-service-ci:
+    name: AI Service Validation (Python 3.11 / FastAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify Multi-Agent State Machine & Tool Execution
+        run: python3 -c "from app.agent_graph import MultiAgentOrchestrator; from app.models import TicketAnalysisRequest; res = MultiAgentOrchestrator.execute(TicketAnalysisRequest(ticketId=1, title='VPN Down', description='Cannot connect', priority='HIGH', category='Network')); assert len(res.trajectory) == 6; assert res.proposedResolution is not None; print('Autonomous Agent Graph Verified Successfully')"
+

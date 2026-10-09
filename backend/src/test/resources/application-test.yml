@@ -17,3 +17,6 @@ app:
   sla:
     check-rate-ms: 60000
     warning-threshold-percent: 75
+  ai:
+    service-url: http://localhost:8000
+

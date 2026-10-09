@@ -30,6 +30,8 @@ app:
   sla:
     check-rate-ms: 60000 # 1 minute
     warning-threshold-percent: 75
+  ai:
+    service-url: ${APP_AI_SERVICE_URL:http://localhost:8000}
 
 springdoc:
   api-docs:

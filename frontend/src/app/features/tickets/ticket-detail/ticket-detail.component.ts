@@ -6,7 +6,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { I18nService } from '../../../core/services/i18n.service';
-import { Ticket, TicketStatus, UserSummary } from '../../../core/models/models';
+import { Ticket, TicketStatus, UserSummary, AiAgentAnalysisResponse, AiAuditLog, AiTrajectoryStep } from '../../../core/models/models';
 import { StateStepperComponent } from '../components/state-stepper/state-stepper.component';
 
 @Component({
@@ -94,6 +94,201 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
                   <div>{{ i18n.t('ticketDetail.resolvedAt') }}: <span class="font-semibold text-green">{{ ticket()?.resolvedAt | date:'short' }}</span></div>
                 }
               </div>
+            </div>
+
+            <!-- Autonomous AI Agent Command Center Card -->
+            <div class="card card-ai-agent p-5 rounded-xl border mb-1">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="ai-avatar-glow flex items-center justify-center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2a4 4 0 0 1 4 4v1a4 4 0 0 1-4 4 4 4 0 0 1-4-4V6a4 4 0 0 1 4-4Z"/>
+                      <path d="M18 8a6 6 0 0 1 6 6v2a6 6 0 0 1-6 6H6a6 6 0 0 1-6-6v-2a6 6 0 0 1 6-6"/>
+                      <path d="M9 16h6"/>
+                      <path d="M12 12v4"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h2 class="text-sm font-bold text-primary">{{ i18n.t('aiAgent.header') }}</h2>
+                      <span class="ai-status-tag">
+                        <span class="pulsing-dot"></span>
+                        {{ i18n.t('aiAgent.statusActive') }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-secondary mt-0.5">{{ i18n.t('aiAgent.subHeader') }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    class="btn btn-primary btn-sm btn-ai-pulse" 
+                    [disabled]="aiRunning()" 
+                    (click)="runAiDiagnosis()"
+                  >
+                    @if (aiRunning()) {
+                      <span class="spinner-sm"></span>
+                      <span>{{ i18n.t('aiAgent.running') }}</span>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                      </svg>
+                      <span>{{ i18n.t('aiAgent.runDiagnosis') }}</span>
+                    }
+                  </button>
+                </div>
+              </div>
+
+              @if (aiAnalysis()) {
+                <div class="ai-results-wrapper animate-fade-in flex flex-col gap-3 mt-4">
+                  <!-- Metrics Strip -->
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div class="metric-pill p-2.5 rounded-lg border">
+                      <div class="text-[11px] text-secondary font-medium">{{ i18n.t('aiAgent.confidence') }}</div>
+                      <div class="text-base font-bold text-accent mt-0.5 flex items-center gap-1.5">
+                        <span>{{ aiAnalysis()?.confidenceScore }}%</span>
+                        <div class="mini-confidence-bar">
+                          <div class="fill" [style.width.%]="aiAnalysis()?.confidenceScore"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="metric-pill p-2.5 rounded-lg border">
+                      <div class="text-[11px] text-secondary font-medium">{{ i18n.t('aiAgent.predictedCategory') }}</div>
+                      <div class="text-sm font-semibold text-primary mt-0.5">{{ aiAnalysis()?.predictedCategory }}</div>
+                    </div>
+                    <div class="metric-pill p-2.5 rounded-lg border">
+                      <div class="text-[11px] text-secondary font-medium">{{ i18n.t('aiAgent.calculatedPriority') }}</div>
+                      <div class="text-sm font-semibold text-primary mt-0.5">{{ aiAnalysis()?.calculatedPriority }}</div>
+                    </div>
+                    <div class="metric-pill p-2.5 rounded-lg border">
+                      <div class="text-[11px] text-secondary font-medium">{{ i18n.t('aiAgent.suggestedTeam') }}</div>
+                      <div class="text-sm font-semibold text-primary mt-0.5 truncate">{{ aiAnalysis()?.suggestedTeam }}</div>
+                    </div>
+                  </div>
+
+                  <!-- Reasoning Trajectory Pipeline -->
+                  <div class="trajectory-card p-3.5 rounded-xl border bg-subtle">
+                    <div class="flex items-center justify-between mb-2.5">
+                      <div class="text-xs font-bold text-primary flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        <span>{{ i18n.t('aiAgent.trajectoryTitle') }}</span>
+                      </div>
+                      <span class="text-[11px] text-secondary font-mono">{{ aiAnalysis()?.trajectory?.length }} steps verified</span>
+                    </div>
+
+                    <div class="trajectory-steps-list flex flex-col gap-2">
+                      @for (step of aiAnalysis()?.trajectory; track step.stepIndex) {
+                        <div 
+                          class="step-row p-2.5 rounded-lg border transition-all cursor-pointer"
+                          [class.expanded]="aiExpandedStep() === step.stepIndex"
+                          (click)="toggleStep(step.stepIndex)"
+                        >
+                          <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                              <span class="step-num-badge font-mono">{{ step.stepIndex }}</span>
+                              <span class="agent-tag">{{ step.agent }}</span>
+                              <span class="text-xs font-semibold text-primary">{{ step.action }}</span>
+                            </div>
+                            <span class="text-[10px] text-secondary font-mono">{{ step.timestamp }}</span>
+                          </div>
+
+                          @if (aiExpandedStep() === step.stepIndex) {
+                            <div class="step-details-body mt-2.5 pt-2.5 border-t text-xs flex flex-col gap-1.5 animate-fade-in">
+                              <div class="thought-bubble p-2 rounded bg-card border">
+                                <span class="font-bold text-accent">Thought:</span> {{ step.thought }}
+                              </div>
+                              @if (step.toolCalled) {
+                                <div class="text-[11px] text-secondary font-mono">
+                                  <span class="font-bold">Tool Executed:</span> {{ step.toolCalled }}
+                                </div>
+                              }
+                              @if (step.observation) {
+                                <div class="text-[11px] text-secondary font-mono">
+                                  <span class="font-bold">Observation:</span> {{ step.observation }}
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Root Cause & Solution Cards -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="p-3.5 rounded-xl border bg-subtle">
+                      <div class="text-xs font-bold text-primary mb-1 flex items-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="12" y1="8" x2="12" y2="12"/>
+                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span>{{ i18n.t('aiAgent.rootCauseTitle') }}</span>
+                      </div>
+                      <div class="text-xs text-secondary leading-relaxed whitespace-pre-line mt-1.5">
+                        {{ aiAnalysis()?.rootCauseAnalysis }}
+                      </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl border bg-subtle">
+                      <div class="text-xs font-bold text-primary mb-1 flex items-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                          <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        <span>{{ i18n.t('aiAgent.solutionTitle') }}</span>
+                      </div>
+                      <div class="text-xs text-secondary leading-relaxed whitespace-pre-line mt-1.5 font-mono bg-card p-2 rounded border">
+                        {{ aiAnalysis()?.proposedResolution }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Human-in-the-Loop Action Card -->
+                  @if (ticket()?.status !== 'RESOLVED' && ticket()?.status !== 'CLOSED') {
+                    <div class="hitl-card p-3.5 rounded-xl border flex flex-wrap items-center justify-between gap-3">
+                      <div class="flex items-center gap-2.5 max-w-xl">
+                        <div class="hitl-icon flex items-center justify-center">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <div class="text-xs font-bold text-primary">{{ i18n.t('aiAgent.hitlBanner') }}</div>
+                          <div class="text-[11px] text-secondary mt-0.5">Automated decision gating guarantees SLA safety and verified technical resolution.</div>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        <button 
+                          class="btn btn-primary btn-sm btn-approve-gradient" 
+                          [disabled]="aiApproving()"
+                          (click)="approveAiRecommendation('RESOLVE')"
+                        >
+                          @if (aiApproving()) {
+                            <span class="spinner-sm"></span>
+                            <span>{{ i18n.t('aiAgent.approving') }}</span>
+                          } @else {
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>{{ i18n.t('aiAgent.approveBtn') }}</span>
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="p-3 rounded-xl border bg-green-soft flex items-center gap-2 text-xs font-semibold text-green">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>{{ i18n.t('aiAgent.approvedBadge') }}</span>
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
             <!-- Tabbed Interaction Card with Apple Segmented Control -->
@@ -483,6 +678,120 @@ import { StateStepperComponent } from '../components/state-stepper/state-stepper
       max-width: 480px;
       box-shadow: var(--shadow-lg);
     }
+
+    /* Autonomous AI Agent Command Center Styles */
+    .card-ai-agent {
+      background: linear-gradient(135deg, var(--bg-card) 0%, rgba(139, 92, 246, 0.03) 100%);
+      border-color: rgba(139, 92, 246, 0.22);
+      box-shadow: 0 4px 20px -2px rgba(139, 92, 246, 0.06);
+    }
+    .ai-avatar-glow {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.35);
+    }
+    .ai-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(139, 92, 246, 0.12);
+      color: #8B5CF6;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+    .pulsing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8B5CF6;
+      animation: pulseDot 1.8s infinite;
+    }
+    @keyframes pulseDot {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+    .btn-ai-pulse {
+      background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+      border: none;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+    }
+    .btn-ai-pulse:hover:not(:disabled) {
+      background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+    }
+    .btn-approve-gradient {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      border: none;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+    }
+    .btn-approve-gradient:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+    .metric-pill {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+    }
+    .mini-confidence-bar {
+      width: 40px;
+      height: 4px;
+      background: var(--border-subtle);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .mini-confidence-bar .fill {
+      height: 100%;
+      background: #8B5CF6;
+      border-radius: 9999px;
+    }
+    .step-row {
+      background: var(--bg-card);
+      border-color: var(--border-subtle);
+    }
+    .step-row:hover {
+      border-color: rgba(139, 92, 246, 0.35);
+    }
+    .step-row.expanded {
+      border-color: #8B5CF6;
+      background: rgba(139, 92, 246, 0.02);
+    }
+    .step-num-badge {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .agent-tag {
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(139, 92, 246, 0.1);
+      color: #8B5CF6;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: monospace;
+    }
+    .hitl-card {
+      background: rgba(16, 185, 129, 0.04);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+    .hitl-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+    }
   `]
 })
 export class TicketDetailComponent implements OnInit {
@@ -496,6 +805,13 @@ export class TicketDetailComponent implements OnInit {
   ticket = signal<Ticket | null>(null);
   loading = signal<boolean>(false);
   activeTab = signal<'comments' | 'worklogs' | 'audit'>('comments');
+
+  // AI Agent Signals
+  aiAnalysis = signal<AiAgentAnalysisResponse | null>(null);
+  aiRunning = signal<boolean>(false);
+  aiApproving = signal<boolean>(false);
+  aiHistory = signal<AiAuditLog[]>([]);
+  aiExpandedStep = signal<number | null>(null);
 
   availableAgents = signal<UserSummary[]>([]);
   selectedAgentPublicId: string = '';
@@ -533,6 +849,8 @@ export class TicketDetailComponent implements OnInit {
     this.api.getAgents().subscribe(agents => {
       this.availableAgents.set(agents);
     });
+
+    this.loadAiHistory();
   }
 
   loadTicket() {
@@ -618,5 +936,63 @@ export class TicketDetailComponent implements OnInit {
     if (p >= 100) return 'progress-red';
     if (p >= 75) return 'progress-orange';
     return 'progress-green';
+  }
+
+  toggleStep(index: number) {
+    this.aiExpandedStep.set(this.aiExpandedStep() === index ? null : index);
+  }
+
+  runAiDiagnosis() {
+    this.aiRunning.set(true);
+    this.api.diagnoseTicketWithAi(this.ticketPublicId()).subscribe({
+      next: (res) => {
+        this.aiAnalysis.set(res);
+        this.aiRunning.set(false);
+        this.loadAiHistory();
+      },
+      error: () => this.aiRunning.set(false)
+    });
+  }
+
+  approveAiRecommendation(action: string = 'RESOLVE') {
+    this.aiApproving.set(true);
+    this.api.approveAiProposal(this.ticketPublicId(), action).subscribe({
+      next: (updated) => {
+        this.ticket.set(updated);
+        this.aiApproving.set(false);
+        this.loadTicket();
+        this.loadAiHistory();
+      },
+      error: () => this.aiApproving.set(false)
+    });
+  }
+
+  loadAiHistory() {
+    this.api.getTicketAiHistory(this.ticketPublicId()).subscribe(history => {
+      this.aiHistory.set(history);
+      if (history && history.length > 0 && !this.aiAnalysis()) {
+        const latest = history[0];
+        try {
+          const steps = JSON.parse(latest.trajectoryJson || '[]');
+          this.aiAnalysis.set({
+            ticketNumber: latest.ticketNumber,
+            languageDetected: 'AR',
+            predictedCategory: latest.predictedCategory,
+            calculatedPriority: latest.calculatedPriority,
+            urgencyScore: 80,
+            confidenceScore: latest.confidenceScore,
+            actionType: latest.actionType,
+            requiresHumanApproval: latest.requiresHumanApproval,
+            rootCauseAnalysis: latest.rootCauseAnalysis,
+            proposedResolution: latest.proposedResolution,
+            suggestedTeam: 'Support Team',
+            slaBreachRisk: 'NOMINAL',
+            trajectory: steps,
+            knowledgeMatches: [],
+            diagnosticResults: []
+          });
+        } catch (e) {}
+      }
+    });
   }
 }

@@ -10,7 +10,9 @@ import {
   Ticket,
   TicketComment,
   UserSummary,
-  WorkLog
+  WorkLog,
+  AiAgentAnalysisResponse,
+  AiAuditLog
 } from '../models/models';
 
 @Injectable({
@@ -106,5 +108,18 @@ export class ApiService {
 
   getAllTeams(): Observable<Team[]> {
     return this.http.get<Team[]>(`${this.baseUrl}/teams`);
+  }
+
+  // Autonomous Multi-Agent AI
+  diagnoseTicketWithAi(publicId: string): Observable<AiAgentAnalysisResponse> {
+    return this.http.post<AiAgentAnalysisResponse>(`${this.baseUrl}/tickets/${publicId}/ai/diagnose`, {});
+  }
+
+  approveAiProposal(publicId: string, action: string = 'RESOLVE', notes?: string): Observable<Ticket> {
+    return this.http.post<Ticket>(`${this.baseUrl}/tickets/${publicId}/ai/approve`, { action, notes });
+  }
+
+  getTicketAiHistory(publicId: string): Observable<AiAuditLog[]> {
+    return this.http.get<AiAuditLog[]>(`${this.baseUrl}/tickets/${publicId}/ai/history`);
   }
 }
